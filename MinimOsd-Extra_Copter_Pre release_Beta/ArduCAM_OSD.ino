@@ -83,6 +83,8 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 
 // Configurations
 #include "OSD_Config.h"
+#include "SimpleTimer.h"
+#include "BetterStream.h"
 #include "ArduCam_Max7456.h"
 #include "OSD_Vars.h"
 #include "OSD_Func.h"
