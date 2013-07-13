@@ -68,8 +68,14 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 #include "wiring.h"
 #endif
 #include <EEPROM.h>
-#include <SimpleTimer.h>
+
+#ifdef USE_MAVLINK
 #include <GCS_MAVLink.h>
+#define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
+#define read_fc_link read_mavlink
+#else
+#define TELEMETRY_SPEED  115200
+#endif
 
 #ifdef membug
 #include <MemoryFree.h>
@@ -88,14 +94,13 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 //#define ArduCAM328
 #define MinimOSD
 
-#define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
 #define BOOTTIME         2000   // Time in milliseconds that we show boot loading bar and wait user input
 
 // Objects and Serial definitions
 FastSerialPort0(Serial);
 OSD osd; //OSD object 
 
-SimpleTimer  mavlinkTimer;
+SimpleTimer  fclinkTimer;
 
 
 /* **********************************************/
@@ -109,9 +114,12 @@ void setup()
     pinMode(MAX7456_SELECT,  OUTPUT); // OSD CS
 
     Serial.begin(TELEMETRY_SPEED);
+#ifdef USE_MAVLINK
     // setup mavlink port
     mavlink_comm_0_port = &Serial;
+#endif
 
+    Serial.println("OHAI");
 #ifdef membug
     Serial.println(freeMem());
 #endif
@@ -158,11 +166,11 @@ void setup()
     Serial.flush();
 
     // Startup MAVLink timers  
-    mavlinkTimer.Set(&OnMavlinkTimer, 120);
+    fclinkTimer.Set(&OnFClinkTimer, 120);
 
     // House cleaning, clear display and enable timers
     osd.clear();
-    mavlinkTimer.Enable();
+    fclinkTimer.Enable();
 
 } // END of setup();
 
@@ -192,13 +200,13 @@ void loop()
         lastMAVBeat = millis();//Preventing error from delay sensing
     }*/
 
-    read_mavlink();
-    mavlinkTimer.Run();
+    read_fc_link();
+    fclinkTimer.Run();
 }
 
 /* *********************************************** */
 /* ******** functions used in main loop() ******** */
-void OnMavlinkTimer()
+void OnFClinkTimer()
 {
     setHeadingPatern();  // generate the heading patern
 
