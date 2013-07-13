@@ -173,6 +173,24 @@ namespace OSD
 }
 
         /* **************************************************************** */
+        // Panel  : RPM
+        // Needs  : X, Y locations
+        // Output : 
+        // Size   : 3 x 6Hea  (rows x chars)
+        // Staus  : done
+
+        public int panRPM(int first_col, int first_line)
+            {
+            osd.setPanel(first_col, first_line);
+            osd.openPanel();
+            
+            osd.printf("%5i\x0a|%5i\x0a|%5i\x0a", 10000, 10000, 10000);
+            
+            osd.closePanel();
+            return 0;
+}
+
+        /* **************************************************************** */
         // Panel  : Temperature
         // Needs  : X, Y locations
         // Output : 

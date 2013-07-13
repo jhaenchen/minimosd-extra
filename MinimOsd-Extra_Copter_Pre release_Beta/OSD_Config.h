@@ -59,6 +59,7 @@
 //#define Ch_BIT         0
 #define TEMP_BIT       1
 #define DIST_BIT       2
+#define RPM_BIT        3
 
 /* *********************************************** */
 // EEPROM Storage addresses
@@ -184,6 +185,9 @@
 #define panDistance_en_ADDR 224
 #define panDistance_x_ADDR 226
 #define panDistance_y_ADDR 228
+#define panRPM_en_ADDR 230
+#define panRPM_x_ADDR 232
+#define panRPM_y_ADDR 234
 
 #define OSD_BATT_SHOW_PERCENT_ADDR 888
 #define measure_ADDR 890

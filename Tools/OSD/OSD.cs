@@ -210,6 +210,7 @@ namespace OSD
 //            panelItems[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Channel Raw", pan.panCh, 1, 0, panCh_en_ADDR, panCh_x_ADDR, panCh_y_ADDR);
             panelItems[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Temperature", pan.panTemp, 1, 11, panTemp_en_ADDR, panTemp_x_ADDR, panTemp_y_ADDR);
             panelItems[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Trip Distance", pan.panDistance, 22, 2, panDistance_en_ADDR, panDistance_x_ADDR, panDistance_y_ADDR);
+            panelItems[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("RPM per motor", pan.panRPM, 22, 2, panRPM_en_ADDR, panRPM_x_ADDR, panRPM_y_ADDR);
 
             nosdfunctions = a;
             //make backup in case EEPROM needs reset to deualt
@@ -248,6 +249,13 @@ namespace OSD
 
 
                     else if (thing.Item1 == "Trip Distance")
+                    {
+                        TreeNode tn = LIST_items.Nodes.Add(thing.Item1,thing.Item1);
+                        tn.Checked = false;
+                    }
+
+
+                    else if (thing.Item1 == "RPM per motor")
                     {
                         TreeNode tn = LIST_items.Nodes.Add(thing.Item1,thing.Item1);
                         tn.Checked = false;
@@ -329,6 +337,7 @@ namespace OSD
 //            panelItems2[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Channel Raw", pan.panCh, 1, 0, panCh_en_ADDR, panCh_x_ADDR, panCh_y_ADDR);
             panelItems2[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Temperature", pan.panTemp, 22, 14, panTemp_en_ADDR, panTemp_x_ADDR, panTemp_y_ADDR);
             panelItems2[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("Trip Distance", pan.panDistance, 22, 2, panDistance_en_ADDR, panDistance_x_ADDR, panDistance_y_ADDR);
+            panelItems2[a++] = new Tuple<string, Func<int, int, int>, int, int, int, int, int>("RPM per motor", pan.panRPM, 22, 2, panRPM_en_ADDR, panRPM_x_ADDR, panRPM_y_ADDR);
 
             //make backup in case EEPROM needs reset to deualt
             panelItems2_default = panelItems2;
@@ -1541,6 +1550,9 @@ namespace OSD
         const int panDistance_en_ADDR = 224;
         const int panDistance_x_ADDR = 226;
         const int panDistance_y_ADDR = 228;
+        const int panRPM_en_ADDR = 230;
+        const int panRPM_x_ADDR = 232;
+        const int panRPM_y_ADDR = 234;
 
         //
         const int OSD_BATT_SHOW_PERCENT_ADDR = 888;
@@ -2721,6 +2733,7 @@ namespace OSD
                         (node.Text == "Temperature") ||
                         (node.Text == "Throttle") ||
                         (node.Text == "Time") ||
+                        (node.Text == "RPM per motor") ||
                         (node.Text == "Warnings"))
                         LIST_items.Nodes["General"].Nodes.Add(node);
 

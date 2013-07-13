@@ -215,6 +215,7 @@ byte panCALLSIGN_XY[2][npanels];
 // byte panCh_XY[2][npanels];
 byte panTemp_XY[2][npanels];
 byte panDistance_XY[2][npanels];
+byte panRPM_XY[2][npanels];
 
 //*************************************************************************************************************
 //rssi varables
