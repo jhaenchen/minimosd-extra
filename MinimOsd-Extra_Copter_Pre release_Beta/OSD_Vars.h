@@ -143,7 +143,6 @@ static uint16_t     tempconvAdd = 0;
 static uint16_t     distchar = 0;
 static uint16_t     climbchar = 0;
 
-
 static float     convertt = 0;
 //Call sign variables
 static char         char_call[OSD_CALL_SIGN_TOTAL+1] = {0};
@@ -226,3 +225,4 @@ static int16_t      rssi = -99; // scaled value 0-100%
 static bool         rssiraw_on = false; // 0- display scale value | 1- display raw value
 static uint8_t      rssi_warn_level = 0;
 
+static uint16_t     osd_rpm[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
