@@ -489,7 +489,7 @@ void panOff(){
 void panCur_A(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%c%5.2f%c", 0xBD, (float(osd_curr_A) * .01), 0x0E);
+    osd.printf("%c%.1f%c", 0xBD, (float(osd_curr_A) * .01), 0x0E);
     osd.closePanel();
 }
 
@@ -518,8 +518,8 @@ void panAlt(int first_col, int first_line){
 void panClimb(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    vs = (osd_climb * converth * 60) * 0.1 + vs * 0.9;
-    osd.printf("%c%4.0f%c",0x15, vs, climbchar);
+    //vs = (osd_climb * converth * 60) * 0.1 + vs * 0.9;
+    osd.printf("%5.1f%c", (double) osd_climb, climbchar);
     osd.closePanel();
 }
 
@@ -548,7 +548,7 @@ void panVel(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     
-    osd.printf("%c%3.0f%c",0x14,(double)(osd_groundspeed * converts),spe);
+    osd.printf("%c%3.0f%c", 0x14,(double)(osd_groundspeed * converts),spe);
     osd.closePanel();
 }
 
