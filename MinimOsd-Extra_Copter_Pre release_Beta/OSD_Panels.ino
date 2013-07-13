@@ -497,14 +497,17 @@ void panCur_A(int first_col, int first_line){
 // Panel  : panAlt
 // Needs  : X, Y locations
 // Output : Alt symbol and altitude value in meters from MAVLink
-// Size   : 1 x 7Hea  (rows x chars)
+// Size   : 2 x 7Hea  (rows x chars)
 // Staus  : done
 
 void panAlt(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     //osd.printf("%c%5.0f%c",0x11, (double)(osd_alt - osd_home_alt), 0x0C);
-    osd.printf("%c%5.0f%c",0x11, (double)(osd_gps_alt * converth), high);
+    //osd.printf("%c%5.0f%c",0x11, (double)(osd_gps_alt * converth), high);
+    osd.printf("%4.1f%c%c |+%3i%c%c ",
+        (double) (osd_alt - osd_home_alt), 0x0c, 0x12,
+        (int) osd_home_alt, 0x0c, 0x11);
     osd.closePanel();
 }
 
