@@ -703,13 +703,14 @@ void panTime(int first_col, int first_line){
 // Panel  : panHomeDis
 // Needs  : X, Y locations
 // Output : Home Symbol with distance to home in meters
-// Size   : 1 x 7  (rows x chars)
+// Size   : 1 x 6  (rows x chars)
 // Staus  : done
 
 void panHomeDis(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%c%5.0f%c", 0x0B, (double)((osd_home_distance) * converth), high);
+//    osd.printf("%4i%c%c", (int)((osd_home_distance) * converth), high, 0x0b);
+    osd.printf("   0%c%c", (int)((osd_home_distance) * converth), high, 0x0b);
     osd.closePanel();
 }
 
@@ -804,7 +805,7 @@ void panBatt_A(int first_col, int first_line){
         osd.printf(" %c%5.2f%c", 0xBD, (double)osd_vbat_A, 0xC9);
     else osd.printf("%c%5.2f%c%c", 0xBD, (double)osd_vbat_A, 0xC9, osd_battery_pic_A);
     */
-    osd.printf("%c%5.2f%c", 0xBC, (double)osd_vbat_A, 0x0D);
+    osd.printf("%5.2f%c", (double)osd_vbat_A, 0x0D);
     osd.closePanel();
 }
 
