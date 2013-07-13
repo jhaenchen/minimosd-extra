@@ -1162,44 +1162,24 @@ void showHorizon(int start_col, int start_row) {
     horiz_line(45, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
 }
 
-// Calculate and shows verical speed aid
-void showILS(int start_col, int start_row) { 
-    //Show line on panel center because horizon line can be
-    //high or low depending on pitch attitude
-    int subval_char = 0xCF;
+// Calculates and shows verical speed aid
+void showILS(int start_col, int start_row, int height) {
+#define M_PER_CHAR 2.5f
+#define CH_PER_LONGCHAR 4
+    int alt = (osd_alt - osd_home_alt) / M_PER_CHAR * CHAR_SPECIAL;
 
-    //shift alt interval from [-5, 5] to [0, 10] interval, so we
-    //can work with remainders.
-    //We are using a 0.2 altitude units as resolution (1 decimal place)
-    //so convert we convert it to times 10 to work 
-    //only with integers and save some bytes
-    //int alt = (osd_alt_to_home * converth + 5) * 10;
-    int alt = (osd_alt_to_home * converth + 5) * 4.4; //44 possible position 5 rows times 9 chars
-    
-    if((alt < 44) && (alt > 0)){
-        //We have 9 possible chars
-        //(alt * 5) -> 5 represents 1/5 which is our resolution. Every single
-        //line (char) change represents 0,2 altitude units
-        //% 10 -> Represents our 10 possible characters
-        //9 - -> Inverts our selected char because when we gain altitude
-        //the selected char has a lower position in memory
-        //+ 5 -> Is the memory displacement od the first altitude charecter 
-        //in memory (it starts at 0x05
-        //subval_char = (99 - ((alt * 5) % 100)) / 9 + 0xC7;
-        subval_char = (8 - (alt  % 9)) + 0xC7;
-        //Each row represents 2 altitude units
-        start_row += (alt / 9);
+    for (int i = 0; i < height; i++) {
+        unsigned int ch_alt = (MAX7456_screen_rows / 2 -
+            (start_col + i)) * CHAR_SPECIAL + alt - 4 + 60000;
+        unsigned int ltype =
+            (ch_alt % (CH_PER_LONGCHAR * CHAR_SPECIAL)) <
+            CHAR_SPECIAL ? 0xc7 : 0xb0;
+        osd.openSingle(start_col, start_row + i);
+        osd.write(ltype + CHAR_SPECIAL - 1 -
+            (ch_alt % CHAR_SPECIAL));
     }
-    else if(alt >= 44){
-        //Copter is too high. Ground is way too low to show on panel, 
-        //so show down arrow at the bottom
-        subval_char = 0xC8; 
-        start_row += 4;
-    }
-
-    //Enough calculations. Let's show the result
-    osd.openSingle(start_col + AH_COLS + 2, start_row);
-    osd.printf("%c", subval_char);
+    osd.openSingle(start_col + 1, MAX7456_screen_rows / 2);
+    osd.write(0xc5);
 }
 
 void do_converts()
