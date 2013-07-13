@@ -731,20 +731,27 @@ void panHomeDis(int first_col, int first_line){
 /* **************************************************************** */
 // Panel  : panHorizon
 // Needs  : X, Y locations
-// Output : 12 x 4 Horizon line surrounded by 2 cols (left/right rules)
-// Size   : 14 x 4  (rows x chars)
+//// Output : 12 x 13 Horizon line surrounded by 2 cols (left/right rules)
+// Size   : 14 x 13  (rows x chars)
 // Staus  : done
-
-void panHorizon(int first_col, int first_line){
+#define AH_COLS			14			// number of artificial horizon columns
+#define AH_ROWS			13			// number of artificial horizon rows
+#define ILS_ROWS                8
+void panHorizon(int first_col, int first_line) {
+    int i, ilstop;
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-  
-    osd.printf_P(PSTR("\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20|\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20|\xC6\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\xC5\x20|\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20|\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20"));
+
+    for (i = 0; i < AH_COLS; i++)
+        osd.printf_P(PSTR("              |"));
 
     osd.closePanel();
-    showHorizon((first_col + 1), first_line);
-    //Show ground level on  HUD
-    showILS(first_col, first_line);
+    showHorizon(first_col, first_line);
+
+    ilstop = min(first_line, (MAX7456_screen_rows - ILS_ROWS) / 2);
+    i = min(ILS_ROWS, AH_ROWS);
+
+    showILS(first_col + AH_COLS - 1, ilstop, i);
 }
 
 /* **************************************************************** */
@@ -1052,10 +1059,6 @@ void showArrow(uint8_t rotate_arrow,uint8_t method) {
 // For using this, you must load a special mcm file with the new staggered artificial horizon chars!
 // e.g. AH_BetterResolutionCharset002.mcm
 							// with different factors we can adapt do different cam optics
-#define AH_PITCH_FACTOR		0.010471976		// conversion factor for pitch
-#define AH_ROLL_FACTOR		0.017453293		// conversion factor for roll
-#define AH_COLS			12			// number of artificial horizon columns
-#define AH_ROWS			5			// number of artificial horizon rows
 #define CHAR_COLS		12			// number of MAX7456 char columns
 #define CHAR_ROWS		18			// number of MAX7456 char rows
 #define CHAR_SPECIAL		9			// number of MAX7456 special chars for the artificial horizon
@@ -1079,12 +1082,48 @@ void showArrow(uint8_t rotate_arrow,uint8_t method) {
 
 #define ANGLE_1			9			// angle above we switch to line set 1
 #define ANGLE_2			25			// angle above we switch to line set 2
+#define PITCH_0_Y               (MAX7456_screen_rows / 2 - 1)
 
+void horiz_line(int pitch_offset, int len, int start_col, int start_row,
+        int line_set, int line_set_overflow, int subval_overflow) {
+    float rsin = sin(osd_roll / 180.0 * 3.1415);
+    float rcos = cos(osd_roll / 180.0 * 3.1415);
+    int x0 = (MAX7456_screen_cols - 2 * start_col) * CHAR_COLS / 2 +
+        3.5 * (osd_pitch + pitch_offset) * rsin;
+    float y0 = (start_row + AH_ROWS - PITCH_0_Y) * CHAR_ROWS -
+        3.5 * (osd_pitch + pitch_offset) * rcos;
+    int x1 = x0 - len * rcos;
+    int x2 = x0 + len * rcos;
+    float y1 = y0 - len * rsin;
+    float yd = rsin / rcos;
+    int minx = min(x1, x2);
+    int maxx = max(x1, x2) / CHAR_COLS;
+
+    for (int col = minx / CHAR_COLS; col <= maxx; col++) {
+        if (col < 0 || col >= AH_COLS)
+            continue;
+        int y = y1 + (col * CHAR_COLS - minx + CHAR_COLS / 2) * yd;
+        if (y < 0 || y >= AH_TOTAL_LINES)
+            continue;
+
+        int row = y / CHAR_ROWS;
+        int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL);
+
+	// print the line char
+        osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
+        osd.write(line_set + subval + 1);
+
+	// check if we have to print an overflow line char
+	if (subval >= subval_overflow && row < AH_ROWS - 1) {	// only if it is a char which needs overflow and if it is not the upper most row
+            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 2);
+            osd.write(line_set_overflow + subval + 1 - OVERFLOW_CHAR_OFFSET);
+	}
+    }
+}
 
 // Calculate and show artificial horizon
 // used formula: y = m * x + n <=> y = tan(a) * x + n
 void showHorizon(int start_col, int start_row) {
-    int col, row, pitch_line, middle, hit, subval;
     int roll;
     int line_set = LINE_SET_STRAIGHT__;
     int line_set_overflow = LINE_SET_STRAIGHT_O;
@@ -1115,26 +1154,12 @@ void showHorizon(int start_col, int start_row) {
             subval_overflow = 8;
 	}
     }
-    
-    pitch_line = round(tan(-AH_PITCH_FACTOR * osd_pitch) * AH_TOTAL_LINES) + AH_TOTAL_LINES/2;	// 90 total lines
-    for (col=1; col<=AH_COLS; col++) {
-        middle = col * CHAR_COLS - (AH_COLS/2 * CHAR_COLS) - CHAR_COLS/2;	  // -66 to +66	center X point at middle of each column
-        hit = tan(AH_ROLL_FACTOR * osd_roll) * middle + pitch_line;	          // 1 to 90	calculating hit point on Y plus offset
-        if (hit >= 1 && hit <= AH_TOTAL_LINES) {
-	    row = (hit-1) / CHAR_ROWS;						  // 0 to 4 bottom-up
-	    subval = (hit - (row * CHAR_ROWS) + 1) / (CHAR_ROWS / CHAR_SPECIAL);  // 1 to 9
-	    
-	    // print the line char
-            osd.openSingle(start_col + col - 1, start_row + AH_ROWS - row - 1);
-            osd.printf("%c", line_set + subval);
-	    
-	    // check if we have to print an overflow line char
-	    if (subval >= subval_overflow && row < 4) {	// only if it is a char which needs overflow and if it is not the upper most row
-                osd.openSingle(start_col + col - 1, start_row + AH_ROWS - row - 2);
-                osd.printf("%c", line_set_overflow + subval - OVERFLOW_CHAR_OFFSET);
-	    }
-        }
-    }
+
+    horiz_line(0, 32, start_col, start_row, line_set, line_set_overflow, subval_overflow);
+    horiz_line(-22.5, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
+    horiz_line(22.5, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
+    horiz_line(-45, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
+    horiz_line(45, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
 }
 
 // Calculate and shows verical speed aid
