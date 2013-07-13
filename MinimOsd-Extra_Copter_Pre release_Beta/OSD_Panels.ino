@@ -891,7 +891,7 @@ void panHeading(int first_col, int first_line){
 // Panel  : panRose
 // Needs  : X, Y locations
 // Output : a dynamic compass rose that changes along the heading information
-// Size   : 2 x 13  (rows x chars)
+// Size   : 2 x 16  (rows x chars)
 // Staus  : done
 
 void panRose(int first_col, int first_line){
@@ -900,7 +900,7 @@ void panRose(int first_col, int first_line){
     //osd_heading  = osd_yaw;
     //if(osd_yaw < 0) osd_heading = 360 + osd_yaw;
     //osd.printf("%s|%c%s%c", "\x20\x80\x80\x80\x80\x80\x81\x80\x80\x80\x80\x80\x20", 0xc3, buf_show, 0x87);
-    osd.printf("%c%s%c", 0xc3, buf_show, 0x87);
+    osd.printf("%s|       ^", buf_show);
     osd.closePanel();
 }
 

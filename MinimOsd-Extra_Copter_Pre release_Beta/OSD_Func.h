@@ -1,22 +1,23 @@
 
 //------------------ Heading and Compass ----------------------------------------
 
-static char buf_show[12];
-const char buf_Rule[36] = {0x82,0x80,0x81,0x80,0x81,0x80,
-                           0x84,0x80,0x81,0x80,0x81,0x80,
-                           0x83,0x80,0x81,0x80,0x81,0x80,
-                           0x85,0x80,0x81,0x80,0x81,0x80};
+#define ROSE_WIDTH 16
+static char buf_show[ROSE_WIDTH + 1];
+const char buf_Rule[] = {
+    0x82, 0x80, 0x81, 0x80, 0x81, 0x80, 0x81, 0x80,
+    0x84, 0x80, 0x81, 0x80, 0x81, 0x80, 0x81, 0x80,
+    0x83, 0x80, 0x81, 0x80, 0x81, 0x80, 0x81, 0x80,
+    0x85, 0x80, 0x81, 0x80, 0x81, 0x80, 0x81, 0x80,
+};
 void setHeadingPatern()
 {
-  int start;
-  start = round((osd_heading * 24)/360);
-  start -= 3;
-  if(start < 0) start += 24;
-  for(int x=0; x <= 10; x++){
-    buf_show[x] = buf_Rule[start];
-    if(++start > 23) start = 0;
-  }
-  buf_show[7] = '\0';
+  int start = round(osd_heading * sizeof(buf_Rule) / 360) +
+      sizeof(buf_Rule);
+
+  for (int x = 0; x < ROSE_WIDTH; x++)
+    buf_show[x] = buf_Rule[start++ % sizeof(buf_Rule)];
+
+  buf_show[ROSE_WIDTH] = '\0';
 }
 
 //------------------ Battery Remaining Picture ----------------------------------
