@@ -71,10 +71,11 @@
   #define MAX7456_screen_size 390 //13x30
   #define MAX7456_screen_rows 0x0D
 #endif
+#define MAX7456_screen_cols 30
 
 //------------------ the OSD class -----------------------------------------------
 
-class OSD: public BetterStream
+class OSD : public BetterStream
 {
   public:
     OSD(void);
