@@ -85,6 +85,7 @@ void writePanels(){
       if(ISe(panel,TEMP_BIT)) panTemp(panTemp_XY[0][panel], panTemp_XY[1][panel]);
       //if(ISe(panel,Ch_BIT)) panCh(panCh_XY[0][panel], panCh_XY[1][panel]);
       if(ISe(panel,DIST_BIT)) panDistance(panDistance_XY[0][panel], panDistance_XY[1][panel]);
+      if(ISe(panel,RPM_BIT)) panRPM(panRPM_XY[0][panel], panRPM_XY[1][panel]);
     }
     //else { //panel == npanels
       //if(ISd(0,Warn_BIT)) panWarn(panWarn_XY[0][0], panWarn_XY[1][0]); // this must be here so warnings are always checked
@@ -767,6 +768,21 @@ void panRoll(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     osd.printf("%4i%c%c",osd_roll,0x05,0x06);
+    osd.closePanel();
+}
+
+/* **************************************************************** */
+// Panel  : panRPM
+// Needs  : X, Y locations
+// Output : RPM values for each motor
+// Size   : 3 x 6  (rows x chars)
+// Staus  : done
+
+void panRPM(int first_col, int first_line){
+    osd.setPanel(first_col, first_line);
+    osd.openPanel();
+    osd.printf("%5u%c|%5u%c|%5u%c", osd_rpm[0], 0xa,
+        osd_rpm[1], 0xa, osd_rpm[2], 0xa);
     osd.closePanel();
 }
 
