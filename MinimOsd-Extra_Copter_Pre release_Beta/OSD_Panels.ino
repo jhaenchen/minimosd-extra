@@ -582,7 +582,7 @@ void panWarn(int first_col, int first_line){
 
     //If disarmed force showing disarmed message
     if (motor_armed == 0){
-      warning_string = "\x20\x20\x44\x49\x53\x41\x52\x4d\x45\x44\x20\x20";
+      warning_string = "  DISARMED  ";
       warning_type = 10;
       text_timer = millis();
       foundWarning = 0;
@@ -598,29 +598,29 @@ void panWarn(int first_col, int first_line){
         //Check for no GPS fix
         if(last_warning == 1){
           if ((osd_fix_type) < 2){
-            warning_type = 1; // No GPS Fix
-            warning_string = "\x20\x4E\x6F\x20\x47\x50\x53\x20\x66\x69\x78\x21";
+////            warning_type = 1; // No GPS Fix
+////            warning_string = "\x20\x4E\x6F\x20\x47\x50\x53\x20\x66\x69\x78\x21";
           }
         }
         //Check for low airspeed
         else if(last_warning == 2){
           if (osd_airspeed * converts < stall && osd_airspeed > 1.12){
-            warning_type = 2;
-            warning_string = "\x20\x20\x20\x53\x74\x61\x6c\x6c\x21\x20\x20\x20";
+////            warning_type = 2;
+////            warning_string = "\x20\x20\x20\x53\x74\x61\x6c\x6c\x21\x20\x20\x20";
           }
         }
         //Check for over speed
         else if(last_warning == 3){
           if ((osd_airspeed * converts) > (float)overspeed){
-            warning_type = 3;
-            warning_string = "\x20\x4f\x76\x65\x72\x53\x70\x65\x65\x64\x21\x20";
+////            warning_type = 3;
+////            warning_string = "\x20\x4f\x76\x65\x72\x53\x70\x65\x65\x64\x21\x20";
           }
         }
         //Check for low battery
         else if(last_warning == 4){
           if (osd_vbat_A < float(battv)/10.0 || (osd_battery_remaining_A < batt_warn_level && batt_warn_level != 0)){
-            warning_type = 4;
-            warning_string = "\x42\x61\x74\x74\x65\x72\x79\x20\x4c\x6f\x77\x21";
+////            warning_type = 4;
+////            warning_string = "\x42\x61\x74\x74\x65\x72\x79\x20\x4c\x6f\x77\x21";
           }
         }
         //Check for low RSSI
