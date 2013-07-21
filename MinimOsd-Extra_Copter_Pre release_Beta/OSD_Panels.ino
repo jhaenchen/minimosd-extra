@@ -712,6 +712,16 @@ void panHorizon(int first_col, int first_line) {
     ilstop = min(first_line, (MAX7456_screen_rows - ILS_ROWS) / 2);
     i = min(ILS_ROWS, AH_ROWS);
 
+#if 0
+    osd.setPanel(first_col + AH_COLS + 1, MAX7456_screen_rows / 2 - 1);
+    osd.openPanel();
+
+    for (i = 0; i < 3; i++)
+        osd.printf_P(PSTR("       |"));
+
+    osd.closePanel();
+#endif
+
     showILS(first_col + AH_COLS - 1, ilstop, i);
 }
 
@@ -1168,8 +1178,59 @@ void showILS(int start_col, int start_row, int height) {
         osd.write(ltype + CHAR_SPECIAL_HORIZ - 1 -
             (ch_alt % CHAR_SPECIAL_HORIZ));
     }
+    len = osd.write_num_s(str, osd_alt - osd_home_alt, 1, 0, 0);
+#if 0
     osd.openSingle(start_col + 1, MAX7456_screen_rows / 2);
-    osd.write(0xc5);
+    osd.write(0x6d);
+    osd.openSingle(start_col + 1, MAX7456_screen_rows / 2 + 1);
+    osd.write(0x6c);
+    for (int i = 0; i < len; i++) {
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2 - 1);
+        osd.write(0xbe);
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2);
+        osd.write(str[i]);
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2 + 1);
+        osd.write(0xcb);
+    }
+    osd.openSingle(start_col + 2 + len, MAX7456_screen_rows / 2 - 1);
+    osd.write(0x69);
+    osd.openSingle(start_col + 2 + len, MAX7456_screen_rows / 2);
+    osd.write(0x6a);
+    osd.openSingle(start_col + 2 + len, MAX7456_screen_rows / 2 + 1);
+    osd.write(0x6b);
+    for (int i = len + 1; i < 6; i++) {
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2 - 1);
+        osd.write(' ');
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2);
+        osd.write(' ');
+        osd.openSingle(start_col + 2 + i, MAX7456_screen_rows / 2 + 1);
+        osd.write(' ');
+    }
+#else
+    osd.setPanel(start_col + 1, MAX7456_screen_rows / 2 - 1);
+    osd.openPanel();
+    /* Row 1 */
+    osd.write(' ');
+    for (int i = 0; i < len; i++)
+        osd.write(0xbe);
+    osd.write(0x69);
+    osd.write(' ');
+    osd.write('|');
+    /* Row 2 */
+    osd.write(0x6d);
+    for (int i = 0; i < len; i++)
+        osd.write(str[i]);
+    osd.write(0x6a);
+    osd.write(' ');
+    osd.write('|');
+    /* Row 2 */
+    osd.write(0x6c);
+    for (int i = 0; i < len; i++)
+        osd.write(0xcb);
+    osd.write(0x6b);
+    osd.write(' ');
+    osd.closePanel();
+#endif
 }
 
 void do_converts()
