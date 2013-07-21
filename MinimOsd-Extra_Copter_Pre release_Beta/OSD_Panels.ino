@@ -522,7 +522,11 @@ void panClimb(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     //vs = (osd_climb * converth * 60) * 0.1 + vs * 0.9;
-    osd.printf("%5.1f%c", (double) osd_climb, climbchar);
+    //osd.printf("%5.1f%c", (double) osd_climb, climbchar);
+    osd.write_num(osd_climb, 1, 0, 0);
+    osd.write(climbchar);
+    osd.write(' ');
+    osd.write(' ');
     osd.closePanel();
 }
 
@@ -536,7 +540,10 @@ void panClimb(int first_col, int first_line){
 void panHomeAlt(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%c%5.0f%c",0x12, (double)(osd_alt_to_home * converth), high);
+//    osd.printf("+%i%c%c", (int) osd_home_alt, 0x0c, 0x11);
+    osd.write_num(osd_home_alt, 0, 0, '+');
+    osd.write(0x0c);
+    osd.write(0x11);
     osd.closePanel();
 }
 
@@ -710,7 +717,10 @@ void panHomeDis(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
 //    osd.printf("%4i%c%c", (int)((osd_home_distance) * converth), high, 0x0b);
-    osd.printf("   0%c%c", (int)((osd_home_distance) * converth), high, 0x0b);
+//    osd.printf("   0%c%c", high, 0x0b);
+    osd.write_num(osd_home_distance * converth, 0, 4, 0);
+    osd.write(high);
+    osd.write(0x0b);
     osd.closePanel();
 }
 
@@ -792,8 +802,16 @@ void panRoll(int first_col, int first_line){
 void panRPM(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%5u%c|%5u%c|%5u%c", osd_rpm[0], 0xa,
-        osd_rpm[1], 0xa, osd_rpm[2], 0xa);
+    //osd.printf("%5u%c|%5u%c|%5u%c", osd_rpm[0], 0xa,
+    //    osd_rpm[1], 0xa, osd_rpm[2], 0xa);
+    osd.write_num(osd_rpm[0], 0, 5, 0);
+    osd.write(0x0a);
+    osd.write('|');
+    osd.write_num(osd_rpm[1], 0, 5, 0);
+    osd.write(0x0a);
+    osd.write('|');
+    osd.write_num(osd_rpm[2], 0, 5, 0);
+    osd.write(0x0a);
     osd.closePanel();
 }
 
@@ -812,7 +830,9 @@ void panBatt_A(int first_col, int first_line){
         osd.printf(" %c%5.2f%c", 0xBD, (double)osd_vbat_A, 0xC9);
     else osd.printf("%c%5.2f%c%c", 0xBD, (double)osd_vbat_A, 0xC9, osd_battery_pic_A);
     */
-    osd.printf("%5.2f%c", (double)osd_vbat_A, 0x0D);
+//    osd.printf("%5.2f%c", (double)osd_vbat_A, 0x0D);
+    osd.write_num(osd_vbat_A, 1, 3, 0);
+    osd.write(0x0d);
     osd.closePanel();
 }
 
