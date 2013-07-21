@@ -58,14 +58,14 @@ void setHomeVars(OSD &osd)
   last_armed = motor_armed;
 
   // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 25*120ms = 3s)
-  if(osd_alt_cnt < 2){
-    if(fabs(osd_alt_prev - osd_alt) > 0.5){
+  if(osd_alt_cnt < 15 && fabs(osd_alt) > 0.1f){
+    if(fabs(osd_alt_prev - osd_alt) > 0.5f){
       osd_alt_cnt = 0;
       osd_alt_prev = osd_alt;
     }
     else
     {
-      if(++osd_alt_cnt >= 2){
+      if(++osd_alt_cnt >= 15){
         osd_home_alt = osd_alt;  // take this stable osd_alt as osd_home_alt
         haltset = 1;
       }
@@ -76,7 +76,7 @@ void setHomeVars(OSD &osd)
   if(osd_got_home == 0 && osd_fix_type > 1){
     osd_home_lat = osd_lat;
     osd_home_lon = osd_lon;
-    osd_alt_cnt = 0;
+    //osd_alt_cnt = 0;
     //osd_home_alt = osd_alt;
     osd_got_home = 1;
   }
