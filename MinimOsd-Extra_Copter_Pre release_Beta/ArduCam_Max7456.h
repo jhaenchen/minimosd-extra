@@ -97,6 +97,8 @@ class OSD : public BetterStream
     virtual int     peek(void);
     virtual void    flush(void);
     virtual size_t write(uint8_t c);
+    void write_num(float num, int dec, int total, char symb);
+    int write_num_s(char *out, float num, int dec, int total, char symb);
     void write_NVM(int font_count, uint8_t *character_bitmap);
     using BetterStream::write;
   private:

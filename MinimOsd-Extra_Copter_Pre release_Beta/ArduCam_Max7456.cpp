@@ -246,6 +246,164 @@ OSD::write(uint8_t c){
 
 //---------------------------------
 
+/* dec: number of fractional digits, total: the total to right-align
+   the number to */
+void OSD::write_num(float num, int dec, int total, char symb) {
+#if 0
+  uint8_t str[15], len = 0, neg = 0;
+  /* Surely not a fast way but not affected by the integer range */
+  float frac = num;
+
+  if (num < 0.0f) {
+    neg = 1;
+    num = -num;
+    if (total)
+      total--;
+  }
+  if (symb && total)
+    total--;
+
+  while (num >= 1.0f || !len) {
+    str[len++] = '0' + (int) fmod(num, 10.0f);
+    num *= 0.1f;
+  }
+  while (total > len) {
+    write(' ');
+    total--;
+  }
+  if (symb)
+    write(symb);
+  if (neg)
+    write('-');
+  while (len)
+    write(str[--len]);
+  while (dec > len) {
+    frac *= 10.0f;
+    write((len++ ? '0' : 0x86) + (int) fmod(frac, 10.0f));
+  }
+#else
+  uint16_t i = num, j = num * 1000.0f;
+  uint8_t neg = 0;
+  if (num < 0.0f) {
+    i = -num, j = -num * 1000.0f;
+    neg = 1;
+    total--;
+  }
+  if (symb)
+    total--;
+  if (i > 9)
+    total--;
+  if (i > 99)
+    total--;
+  if (i > 999)
+    total--;
+  if (i > 9999)
+    total--;
+  while (total-- > dec + 1)
+    write(' ');
+  if (symb)
+    write(symb);
+  if (neg)
+    write('-');
+  if (i > 9999)
+    write((i / 10000) % 10 + '0');
+  if (i > 999)
+    write((i / 1000) % 10 + '0');
+  if (i > 99)
+    write((i / 100) % 10 + '0');
+  if (i > 9)
+    write((i / 10) % 10 + '0');
+  write(i % 10 + '0');
+  if (dec > 0)
+    write((j / 100) % 10 + 0x86);
+  if (dec > 1)
+    write((j / 10) % 10 + '0');
+  if (dec > 2)
+    write(j % 10 + '0');
+#endif
+}
+
+int OSD::write_num_s(char *out, float num, int dec, int total, char symb) {
+  char *orig = out;
+#define write(x) *out++ = (x)
+#if 0
+  uint8_t str[15], len = 0, neg = 0;
+  /* Surely not a fast way but not affected by the integer range */
+  float frac = num;
+
+  if (num < 0.0f) {
+    neg = 1;
+    num = -num;
+    if (total)
+      total--;
+  }
+  if (symb && total)
+    total--;
+
+  while (num >= 1.0f || !len) {
+    str[len++] = '0' + (int) fmod(num, 10.0f);
+    num *= 0.1f;
+  }
+  while (total > len) {
+    write(' ');
+    total--;
+  }
+  if (symb)
+    write(symb);
+  if (neg)
+    write('-');
+  while (len)
+    write(str[--len]);
+  while (dec > len) {
+    frac *= 10.0f;
+    write((len++ ? '0' : 0x86) + (int) fmod(frac, 10.0f));
+  }
+#else
+  uint16_t i = num, j = num * 1000.0f;
+  uint8_t neg = 0;
+  if (num < 0.0f) {
+    i = -num, j = -num * 1000.0f;
+    neg = 1;
+    total--;
+  }
+  if (symb)
+    total--;
+  if (i > 9)
+    total--;
+  if (i > 99)
+    total--;
+  if (i > 999)
+    total--;
+  if (i > 9999)
+    total--;
+  while (total-- > dec + 1)
+    write(' ');
+  if (symb)
+    write(symb);
+  if (neg)
+    write('-');
+  if (i > 9999)
+    write((i / 10000) % 10 + '0');
+  if (i > 999)
+    write((i / 1000) % 10 + '0');
+  if (i > 99)
+    write((i / 100) % 10 + '0');
+  if (i > 9)
+    write((i / 10) % 10 + '0');
+  write(i % 10 + '0');
+  if (dec > 0)
+    write((j / 100) % 10 + 0x86);
+  if (dec > 1)
+    write((j / 10) % 10 + '0');
+  if (dec > 2)
+    write(j % 10 + '0');
+#endif
+#undef write
+  return out - orig;
+}
+
+//---------------------------------
+
 void
 OSD::control(uint8_t ctrl){
   digitalWrite(MAX7456_SELECT,LOW);
