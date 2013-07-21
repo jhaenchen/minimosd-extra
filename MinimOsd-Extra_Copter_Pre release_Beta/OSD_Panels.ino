@@ -579,81 +579,32 @@ void panAirSpeed(int first_col, int first_line){
 /* **************************************************************** */
 // Panel  : panWarn
 // Needs  : X, Y locations
-// Output : Airspeed value from MAVlink with symbols
+// Output : Warning strings depending on flags
 // Size   : 1 x 7  (rows x chars)
 // Staus  : done
 
 void panWarn(int first_col, int first_line){
+    int count = 0, warnings[5];
+    static const char *texts[5] = {
+        "  DISARMED  ",
+        "  ACC RANGE ",
+        "  MAG RANGE ",
+    };
+
     osd.setPanel(first_col, first_line);
     osd.openPanel();
+    
+    if (!motor_armed)
+        warnings[count++] = 0;
+    if (!acc_valid)
+        warnings[count++] = 1;
+    if (!mag_valid)
+        warnings[count++] = 2;
 
-    //If disarmed force showing disarmed message
-    if (motor_armed == 0){
-      warning_string = "  DISARMED  ";
-      warning_type = 10;
-      text_timer = millis();
-      foundWarning = 0;
-    }
-
-    //If there is no warning beeing shown, check for next one
-    if(warning_type == 0){
-      //byte check_warning = last_warning ++; // start the warning checks where we left it last time
-      last_warning ++; // start the warning checks where we left it last time
-      //while (check_warning != last_warning){
-        //if (check_warning > 5) check_warning = 1; // change the 5 if you add more warning types
-        if (last_warning > 5) last_warning = 1; // change the 5 if you add more warning types
-        //Check for no GPS fix
-        if(last_warning == 1){
-          if ((osd_fix_type) < 2){
-////            warning_type = 1; // No GPS Fix
-////            warning_string = "\x20\x4E\x6F\x20\x47\x50\x53\x20\x66\x69\x78\x21";
-          }
-        }
-        //Check for low airspeed
-        else if(last_warning == 2){
-          if (osd_airspeed * converts < stall && osd_airspeed > 1.12){
-////            warning_type = 2;
-////            warning_string = "\x20\x20\x20\x53\x74\x61\x6c\x6c\x21\x20\x20\x20";
-          }
-        }
-        //Check for over speed
-        else if(last_warning == 3){
-          if ((osd_airspeed * converts) > (float)overspeed){
-////            warning_type = 3;
-////            warning_string = "\x20\x4f\x76\x65\x72\x53\x70\x65\x65\x64\x21\x20";
-          }
-        }
-        //Check for low battery
-        else if(last_warning == 4){
-          if (osd_vbat_A < float(battv)/10.0 || (osd_battery_remaining_A < batt_warn_level && batt_warn_level != 0)){
-////            warning_type = 4;
-////            warning_string = "\x42\x61\x74\x74\x65\x72\x79\x20\x4c\x6f\x77\x21";
-          }
-        }
-        //Check for low RSSI
-        else if(last_warning == 5){
-          if (rssi < rssi_warn_level && rssi != -99 && !rssiraw_on){
-            warning_type = 5;
-            warning_string = "\x20\x20\x4c\x6f\x77\x20\x52\x73\x73\x69\x20\x20";
-          }
-        }
-        //Check next warning
-        //check_warning ++;
-        foundWarning = (warning_type > 0);
-        if(warning_type != 0){
-          text_timer = millis();
-        }
-      //}
-    }
-    else{
-      if (millis() - text_timer > 2000){
-        warning_type = 0;
-      }
-      else if (millis() - text_timer > 1000){
-        warning_string = "\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20";
-      }
-      osd.printf("%s",warning_string);
-    }
+    if (count)
+        osd.printf(texts[warnings[(millis() / 500) % count]]);
+    else
+        osd.printf("            ");
     osd.closePanel();
 }
 

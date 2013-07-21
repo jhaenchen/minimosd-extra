@@ -48,6 +48,8 @@ void read_fc_link(void) {
         case LINK_FLAGS:
             param = readbyte();
             motor_armed = (param >> 0) & 1;
+            acc_valid = (param >> 1) & 1;
+            mag_valid = (param >> 2) & 1;
             break;
 
         case LINK_STATUS:
