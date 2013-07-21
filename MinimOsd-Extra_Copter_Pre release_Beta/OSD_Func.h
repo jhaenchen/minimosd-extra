@@ -12,7 +12,7 @@ const char buf_Rule[] = {
 void setHeadingPatern()
 {
   int start = round(osd_heading * sizeof(buf_Rule) / 360) +
-      sizeof(buf_Rule);
+      sizeof(buf_Rule) * 2 - ROSE_WIDTH / 2 + 1;
 
   for (int x = 0; x < ROSE_WIDTH; x++)
     buf_show[x] = buf_Rule[start++ % sizeof(buf_Rule)];
