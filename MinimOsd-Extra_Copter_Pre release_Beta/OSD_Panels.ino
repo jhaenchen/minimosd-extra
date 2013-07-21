@@ -1083,10 +1083,9 @@ void showArrow(uint8_t rotate_arrow,uint8_t method) {
 #define CHAR_ROWS		18			// number of MAX7456 char rows
 #define CHAR_SPECIAL		9			// number of MAX7456 special chars for the artificial horizon
 #define AH_TOTAL_LINES		AH_ROWS * CHAR_ROWS	// helper define
+#define CHAR_SPECIAL_HORIZ	18                      // special case for the horizontal bar char
 
-
-#define LINE_SET_STRAIGHT__	(0xC7 - 1)		// code of the first MAX7456 straight char -1
-#define LINE_SET_STRAIGHT_O	(0xD0 - 3)		// code of the first MAX7456 straight overflow char -3
+#define LINE_SET_STRAIGHT	(0xbe)		        // code of the first MAX7456 straight char
 #define LINE_SET_P___STAG_1	(0xD1 - 1)		// code of the first MAX7456 positive staggered set 1 char -1
 #define LINE_SET_P___STAG_2	(0xDA - 1)		// code of the first MAX7456 positive staggered set 2 char -1
 #define LINE_SET_N___STAG_1	(0xE3 - 1)		// code of the first MAX7456 negative staggered set 1 char -1
@@ -1102,7 +1101,7 @@ void showArrow(uint8_t rotate_arrow,uint8_t method) {
 
 #define ANGLE_1			9			// angle above we switch to line set 1
 #define ANGLE_2			25			// angle above we switch to line set 2
-#define PITCH_0_Y               (MAX7456_screen_rows / 2 - 1)
+#define PITCH_0_Y		(MAX7456_screen_rows / 2 - 1)
 
 void horiz_line(int pitch_offset, int len, int start_col, int start_row,
         int line_set, int line_set_overflow, int subval_overflow) {
@@ -1127,17 +1126,35 @@ void horiz_line(int pitch_offset, int len, int start_col, int start_row,
             continue;
 
         int row = y / CHAR_ROWS;
-        int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL);
 
-	// print the line char
-        osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
-        osd.write(line_set + subval + 1);
+        if (line_set == LINE_SET_STRAIGHT) {
+          int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL_HORIZ);
 
-	// check if we have to print an overflow line char
-	if (subval >= subval_overflow && row < AH_ROWS - 1) {	// only if it is a char which needs overflow and if it is not the upper most row
+	  // print the line char
+          osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
+          osd.write(line_set + subval);
+
+	  // check if we have to print an overflow line char
+	  if (subval >= CHAR_SPECIAL_HORIZ - 1 && row < AH_ROWS - 1) {
+            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 2);
+            osd.write(line_set + subval - CHAR_SPECIAL_HORIZ);
+	  } else if (subval <= 0 && row) {
+            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 0);
+            osd.write(line_set + subval + CHAR_SPECIAL_HORIZ);
+	  }
+        } else {
+          int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL);
+
+	  // print the line char
+          osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
+          osd.write(line_set + subval + 1);
+
+	  // check if we have to print an overflow line char
+	  if (subval >= subval_overflow && row < AH_ROWS - 1) {	// only if it is a char which needs overflow and if it is not the upper most row
             osd.openSingle(start_col + col, start_row + AH_ROWS - row - 2);
             osd.write(line_set_overflow + subval + 1 - OVERFLOW_CHAR_OFFSET);
-	}
+	  }
+        }
     }
 }
 
@@ -1145,8 +1162,8 @@ void horiz_line(int pitch_offset, int len, int start_col, int start_row,
 // used formula: y = m * x + n <=> y = tan(a) * x + n
 void showHorizon(int start_col, int start_row) {
     int roll;
-    int line_set = LINE_SET_STRAIGHT__;
-    int line_set_overflow = LINE_SET_STRAIGHT_O;
+    int line_set = LINE_SET_STRAIGHT;
+    int line_set_overflow = 0;
     int subval_overflow = 9;
     
     // preset the line char attributes
@@ -1184,19 +1201,21 @@ void showHorizon(int start_col, int start_row) {
 
 // Calculates and shows verical speed aid
 void showILS(int start_col, int start_row, int height) {
-#define M_PER_CHAR 2.5f
+    char str[20], len;
+#define UNIT_PER_CHAR 2.5f
 #define CH_PER_LONGCHAR 4
-    int alt = (osd_alt - osd_home_alt) / M_PER_CHAR * CHAR_SPECIAL;
+    uint16_t alt = (fmod(osd_alt - osd_home_alt, 100.0f) + 100.0f) /
+        UNIT_PER_CHAR * CHAR_SPECIAL_HORIZ;
 
     for (int i = 0; i < height; i++) {
-        unsigned int ch_alt = (MAX7456_screen_rows / 2 -
-            (start_col + i)) * CHAR_SPECIAL + alt - 4 + 60000;
-        unsigned int ltype =
-            (ch_alt % (CH_PER_LONGCHAR * CHAR_SPECIAL)) <
-            CHAR_SPECIAL ? 0xc7 : 0xb0;
+        uint16_t ch_alt = (MAX7456_screen_rows / 2 -
+            (start_row + i) + 100) * CHAR_SPECIAL_HORIZ + alt + 4;
+        uint8_t ltype =
+            (ch_alt % (CH_PER_LONGCHAR * CHAR_SPECIAL_HORIZ)) <
+            CHAR_SPECIAL_HORIZ ? 0xbe : 0x6e;
         osd.openSingle(start_col, start_row + i);
-        osd.write(ltype + CHAR_SPECIAL - 1 -
-            (ch_alt % CHAR_SPECIAL));
+        osd.write(ltype + CHAR_SPECIAL_HORIZ - 1 -
+            (ch_alt % CHAR_SPECIAL_HORIZ));
     }
     osd.openSingle(start_col + 1, MAX7456_screen_rows / 2);
     osd.write(0xc5);
