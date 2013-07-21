@@ -61,10 +61,12 @@ void read_fc_link(void) {
             break;
 
         case LINK_ATTITUDE:
-            param = readbyte();
-            osd_pitch = (int8_t) (uint8_t) param * 180.0f / 128;
-            param = readbyte();
-            osd_roll = (int8_t) (uint8_t) param * 180.0f / 128;
+            param = readbyte() << 8;
+            param |= readbyte();
+            osd_pitch = (int8_t) (uint8_t) param * 180.0f / 32768;
+            param = readbyte() << 8;
+            param |= readbyte();
+            osd_roll = (int8_t) (uint8_t) param * 180.0f / 32768;
             param = readbyte();
             osd_heading = (uint8_t) param * 360.0f / 256;
             break;
@@ -89,16 +91,6 @@ void read_fc_link(void) {
                     osd_cog = mavlink_msg_gps_raw_int_get_cog(&msg);
                 }
                 break; 
-            case MAVLINK_MSG_ID_VFR_HUD:
-                {
-                    osd_airspeed = mavlink_msg_vfr_hud_get_airspeed(&msg);
-                    osd_groundspeed = mavlink_msg_vfr_hud_get_groundspeed(&msg);
-                    osd_heading = mavlink_msg_vfr_hud_get_heading(&msg); // 0..360 deg, 0=north
-                    osd_throttle = (uint8_t)mavlink_msg_vfr_hud_get_throttle(&msg);
-                    osd_alt = mavlink_msg_vfr_hud_get_alt(&msg);
-                    osd_climb = mavlink_msg_vfr_hud_get_climb(&msg);
-                }
-                break;
 */
         default:
             continue;
