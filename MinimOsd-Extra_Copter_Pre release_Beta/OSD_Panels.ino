@@ -151,9 +151,9 @@ void panDistance(int first_col, int first_line){
     osd.openPanel();
     //do_converts();
     if ((tdistance * converth) > 1000.0) {
-    osd.printf("%c%5.2f%c", 0x8F, ((tdistance * converth) / distconv), distchar);
+    osd.printf("%c%5.2f%c", 0x8F, (double) ((tdistance * converth) / distconv), distchar);
     }else{
-    osd.printf("%c%5.0f%c", 0x8F, (tdistance * converth), high);
+    osd.printf("%c%5.0f%c", 0x8F, (double) (tdistance * converth), high);
     }
     osd.closePanel();
 }
@@ -184,7 +184,7 @@ void panTemp(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     //do_converts();
-    osd.printf("%c%5.1f%c", 0x0a, (float(temperature / 10 * tempconv + tempconvAdd) / 100), temps);
+    osd.printf("%c%5.1f%c", 0x0a, (double) (float(temperature / 10 * tempconv + tempconvAdd) / 100), temps);
     osd.closePanel();
 }
 
@@ -683,7 +683,7 @@ void panBatteryPercent(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     if (EEPROM.read(OSD_BATT_SHOW_PERCENT_ADDR ) == 0){ 
-      osd.printf("%c%4.0f%c",0x17, mah_used, 0x01); 
+      osd.printf("%c%4.0f%c",0x17, (double) mah_used, 0x01); 
     }else{ 
       osd.printf("%c%3.0i%c", 0x17, osd_battery_remaining_A, 0x25); 
     } 
@@ -856,7 +856,7 @@ void panBatt_A(int first_col, int first_line){
 void panGPL(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    char* gps_str;
+    const char *gps_str;
     if(osd_fix_type == 0 || osd_fix_type == 1) gps_str = "\x1F\x20"; 
         //osd.printf_P(PSTR("\x1F\x20"));
     else if(osd_fix_type == 2 || osd_fix_type == 3) gps_str = "\x0F\x20";
@@ -882,7 +882,7 @@ void panGPSats(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     
-    char* gps_str;
+    const char *gps_str;
     if(osd_fix_type == 0 || osd_fix_type == 1) gps_str = "\x1F";       
     else if(osd_fix_type == 2 || osd_fix_type == 3) gps_str = "\x0F";
     
@@ -1012,7 +1012,7 @@ void panWPDis(int first_col, int first_line){
     osd.printf("%c%c%2i%c%4.0f%c|",0x57, 0x70, wp_number,0x0,(double)((float)(wp_dist) * converth),high);
     showArrow((uint8_t)wp_target_bearing_rotate_int,0);
     if (osd_mode == 10){
-        osd.printf("%c%c%c%4.0f%c", 0x20, 0x58, 0x65, (xtrack_error* converth), high);
+        osd.printf("%c%c%c%4.0f%c", 0x20, 0x58, 0x65, (double) (xtrack_error* converth), high);
     }else{
         osd.printf_P(PSTR("\x20\x20\x20\x20\x20\x20\x20\x20"));
     }
@@ -1044,7 +1044,7 @@ void panFlightMode(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     //char c1 = 0xE0 ;//"; char c2; char c3; char c4; char c5; 
-    char* mode_str="";
+    const char* mode_str="";
     if (osd_mode == 0) mode_str = "stab"; //Stabilize
     else if (osd_mode == 1) mode_str = "acro"; //Acrobatic
     else if (osd_mode == 2) mode_str = "alth"; //Alt Hold
