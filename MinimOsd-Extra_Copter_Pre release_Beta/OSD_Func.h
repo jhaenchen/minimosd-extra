@@ -103,7 +103,7 @@ void setHomeVars(OSD &osd)
 
 void setFdataVars(){
   //
-  if (haltset == 1 && takeofftime == 0 && osd_throttle > 15){
+  if (takeofftime == 0 && osd_throttle > 15 && motor_armed){
     takeofftime = 1;
     tdistance = 0;
     FTime = (millis()/1000);
