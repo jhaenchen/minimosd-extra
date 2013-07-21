@@ -47,7 +47,7 @@ char setBatteryPic(uint16_t bat_level)
 void setHomeVars(OSD &osd)
 {
   float dstlon, dstlat;
-  long bearing;
+  int bearing;
 
   osd_alt_to_home = (osd_alt - osd_home_alt);
   //Check arm/disarm switching.
@@ -94,14 +94,10 @@ void setHomeVars(OSD &osd)
     //DIR to Home
     dstlon = (osd_home_lon - osd_lon); //OffSet_X
     dstlat = (osd_home_lat - osd_lat) * scaleLongUp; //OffSet Y
-    bearing = 90 + (atan2(dstlat, -dstlon) * 57.295775); //absolut home direction
-    if(bearing < 0) bearing += 360;//normalization
-    bearing = bearing - 180;//absolut return direction
-    if(bearing < 0) bearing += 360;//normalization
-    bearing = bearing - osd_heading;//relative home direction
-    if(bearing < 0) bearing += 360; //normalization
-    osd_home_direction = ((int)round((float)(bearing/360.0f) * 16.0f) % 16) + 1;//array of arrows =)
-    //if(osd_home_direction > 16) osd_home_direction = 1;
+    bearing = 720 + 90 + atan2(dstlat, -dstlon) * 57.295775; // absolute home direction
+    bearing -= 180; // absolute return direction
+    bearing = bearing - osd_heading; // relative home direction
+    osd_home_direction = (bearing * 16 + 7) / 360 % 16 + 1;//array of arrows =)
   }
 }
 
