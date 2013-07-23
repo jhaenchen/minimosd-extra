@@ -63,10 +63,10 @@ void read_fc_link(void) {
         case LINK_ATTITUDE:
             param = readbyte() << 8;
             param |= readbyte();
-            osd_pitch = (int8_t) (uint8_t) param * 180.0f / 32768;
+            osd_pitch = (int16_t) (uint16_t) param * 180.0f / 32768;
             param = readbyte() << 8;
             param |= readbyte();
-            osd_roll = (int8_t) (uint8_t) param * 180.0f / 32768;
+            osd_roll = (int16_t) (uint16_t) param * 180.0f / 32768;
             param = readbyte();
             osd_heading = (uint8_t) param * 360.0f / 256;
             break;
