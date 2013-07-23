@@ -1168,12 +1168,14 @@ void showILS(int start_col, int start_row, int height) {
     char str[20], len;
 #define UNIT_PER_CHAR 2.5f
 #define CH_PER_LONGCHAR 4
+#define ZERO_ALT_OFFSET (18 - 7) /* Pixel height of the cur.alt. marker triangle tip */
     uint16_t alt = (fmod(osd_alt - osd_home_alt, 100.0f) + 100.0f) /
         UNIT_PER_CHAR * CHAR_SPECIAL_HORIZ;
 
     for (int i = 0; i < height; i++) {
         uint16_t ch_alt = (MAX7456_screen_rows / 2 -
-            (start_row + i) + 100) * CHAR_SPECIAL_HORIZ + alt + 4;
+            (start_row + i) + 100) * CHAR_SPECIAL_HORIZ + alt +
+            ZERO_ALT_OFFSET;
         uint8_t ltype =
             (ch_alt % (CH_PER_LONGCHAR * CHAR_SPECIAL_HORIZ)) <
             CHAR_SPECIAL_HORIZ ? 0xbe : 0x6e;
