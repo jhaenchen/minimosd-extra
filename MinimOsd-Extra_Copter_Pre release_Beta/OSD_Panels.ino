@@ -589,6 +589,7 @@ void panWarn(int first_col, int first_line){
         "  DISARMED  ",
         "  ACC RANGE ",
         "  MAG RANGE ",
+        " !NOSIGNAL! ",
     };
 
     osd.setPanel(first_col, first_line);
@@ -600,6 +601,8 @@ void panWarn(int first_col, int first_line){
         warnings[count++] = 1;
     if (!mag_valid)
         warnings[count++] = 2;
+    if (nosignal)
+        warnings[count++] = 3;
 
     if (count)
         osd.printf(texts[warnings[(millis() / 500) % count]]);

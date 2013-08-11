@@ -50,6 +50,7 @@ void read_fc_link(void) {
             motor_armed = (param >> 0) & 1;
             acc_valid = (param >> 1) & 1;
             mag_valid = (param >> 2) & 1;
+            nosignal = (param >> 3) & 1;
             break;
 
         case LINK_STATUS:
