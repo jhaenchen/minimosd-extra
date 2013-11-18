@@ -27,9 +27,10 @@ void request_mavlink_rates()
     }
 }
 
-void read_mavlink(){
+int read_mavlink(){
     mavlink_message_t msg; 
     mavlink_status_t status;
+    int ret = 0;
 
     //grabing data 
     while(Serial.available() > 0) { 
@@ -51,6 +52,7 @@ void read_mavlink(){
         //trying to grab msg  
         if(mavlink_parse_char(MAVLINK_COMM_0, c, &msg, &status)) {
             mavlink_active = 1;
+            ret = 1;
             //handle msg
             switch(msg.msgid) {
             case MAVLINK_MSG_ID_HEARTBEAT:
@@ -156,6 +158,7 @@ void read_mavlink(){
                 break;
             default:
                 //Do nothing
+                ret = 0;
                 break;
             }
         }
@@ -166,5 +169,6 @@ void read_mavlink(){
     packet_drops += status.packet_rx_drop_count;
     parse_error += status.parse_error;
 
+    return ret;
 }
 #endif

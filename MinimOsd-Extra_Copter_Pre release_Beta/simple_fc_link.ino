@@ -8,8 +8,9 @@ static uint8_t readbyte(void) {
     return Serial.read();
 }
 
-void read_fc_link(void) {
+int read_fc_link(void) {
     uint32_t param, i;
+    int ret = 0;
 
     /* Grabbing data */
     while(Serial.available() > 0) {
@@ -29,6 +30,8 @@ void read_fc_link(void) {
                 uploadFont();
             }
         }
+
+	ret = 1;
 
 #define LINK_BARO_ALT 0x80
 #define LINK_FLAGS    0x81
@@ -59,6 +62,8 @@ void read_fc_link(void) {
             osd_vbat_A = param / 1000.0f;
             param = readbyte();
             osd_throttle = param * 100 / 255;
+            param = readbyte();
+            osd_rssi = param;
             break;
 
         case LINK_ATTITUDE:
@@ -76,9 +81,15 @@ void read_fc_link(void) {
             i = readbyte();
             param = readbyte() << 8;
             param |= readbyte();
-            if (i < 0 || i > 7)
+            if (i < 0 || i > 7) {
+                readbyte();
+                readbyte();
                 break;
+            }
             osd_rpm[i] = param;
+            param = readbyte() << 8;
+            param |= readbyte();
+            osd_esctemp[i] = param;
             break;
 
 /*
@@ -91,13 +102,16 @@ void read_fc_link(void) {
                     osd_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
                     osd_cog = mavlink_msg_gps_raw_int_get_cog(&msg);
                 }
-                break; 
+                break;
 */
         default:
+            ret = 0;
             continue;
         }
-        
+
         fc_link_active = true;
     }
+
+    return ret;
 }
 #endif

@@ -230,3 +230,4 @@ static bool         rssiraw_on = false; // 0- display scale value | 1- display r
 static uint8_t      rssi_warn_level = 0;
 
 static uint16_t     osd_rpm[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+static int16_t     osd_esctemp[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };

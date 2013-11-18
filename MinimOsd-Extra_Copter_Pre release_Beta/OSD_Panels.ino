@@ -760,7 +760,7 @@ void panRoll(int first_col, int first_line){
 // Panel  : panRPM
 // Needs  : X, Y locations
 // Output : RPM values for each motor
-// Size   : 3 x 6  (rows x chars)
+// Size   : 4 x 11  (rows x chars)
 // Staus  : done
 
 void panRPM(int first_col, int first_line){
@@ -770,12 +770,27 @@ void panRPM(int first_col, int first_line){
     //    osd_rpm[1], 0xa, osd_rpm[2], 0xa);
     osd.write_num(osd_rpm[0], 0, 5, 0);
     osd.write(0x0a);
+    //osd.write(' ');
+    osd.write_num((osd_esctemp[0] * tempconv + tempconvAdd * 10) * 0.001f, 1, 0, 0);
+    osd.write(temps);
     osd.write('|');
     osd.write_num(osd_rpm[1], 0, 5, 0);
     osd.write(0x0a);
+    //osd.write(' ');
+    osd.write_num((osd_esctemp[1] * tempconv + tempconvAdd * 10) * 0.001f, 1, 0, 0);
+    osd.write(temps);
     osd.write('|');
     osd.write_num(osd_rpm[2], 0, 5, 0);
     osd.write(0x0a);
+    //osd.write(' ');
+    osd.write_num((osd_esctemp[2] * tempconv + tempconvAdd * 10) * 0.001f, 1, 0, 0);
+    osd.write(temps);
+    osd.write('|');
+    osd.write_num(osd_rpm[3], 0, 5, 0);
+    osd.write(0x0a);
+    //osd.write(' ');
+    osd.write_num((osd_esctemp[3] * tempconv + tempconvAdd * 10) * 0.001f, 1, 0, 0);
+    osd.write(temps);
     osd.closePanel();
 }
 

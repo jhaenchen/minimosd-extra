@@ -102,9 +102,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 FastSerialPort0(Serial);
 OSD osd; //OSD object 
 
-SimpleTimer  fclinkTimer;
-
-
 /* **********************************************/
 /* ***************** SETUP() *******************/
 
@@ -167,13 +164,8 @@ void setup()
         delay(2000);
     Serial.flush();
 
-    // Startup MAVLink timers  
-    fclinkTimer.Set(&OnFClinkTimer, 120);
-
-    // House cleaning, clear display and enable timers
+    // House cleaning, clear display
     osd.clear();
-    fclinkTimer.Enable();
-
 } // END of setup();
 
 
@@ -202,13 +194,13 @@ void loop()
         lastMAVBeat = millis();//Preventing error from delay sensing
     }*/
 
-    read_fc_link();
-    fclinkTimer.Run();
+    if (read_fc_link())
+        update();
 }
 
 /* *********************************************** */
 /* ******** functions used in main loop() ******** */
-void OnFClinkTimer()
+void update()
 {
     setHeadingPatern();  // generate the heading patern
 
