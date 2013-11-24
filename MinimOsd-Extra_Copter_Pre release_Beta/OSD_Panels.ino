@@ -737,9 +737,15 @@ void panHomeDis(int first_col, int first_line){
     osd.openPanel();
 //    osd.printf("%4i%c%c", (int)((osd_home_distance) * converth), high, 0x0b);
 //    osd.printf("   0%c%c", high, 0x0b);
-    osd.write_num(osd_home_distance * converth, 0, 4, 0);
-    osd.write(high);
-    osd.write(0x0b);
+    if (osd_home_distance >= 5) {
+        osd.write_num(osd_home_distance * converth, 0, 4, 0);
+        osd.write(high);
+        osd.write(0x0b);
+    } else {
+        int i;
+        for (i = 0; i < 6; i++)
+            osd.write(' ');
+    }
     osd.closePanel();
 }
 
@@ -1100,7 +1106,12 @@ void panHomeDir(int first_col, int first_line){
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    showArrow((uint8_t)osd_home_direction,0);
+    if (osd_home_distance >= 5)
+        showArrow((uint8_t) osd_home_direction, 0);
+    else {
+        osd.write(' ');
+        osd.write(' ');
+    }
     osd.closePanel();
 }
 
