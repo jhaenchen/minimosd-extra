@@ -96,7 +96,6 @@ void writePanels(){
       //if(ISd(0,CALLSIGN_BIT)) panCALLSIGN(panCALLSIGN_XY[0][panel], panCALLSIGN_XY[1][panel]); //call sign even in off panel
     //}
   }
-        force_redraw = 0;
 /*  } else { // if no mavlink update for 2 secs
     
         // this could be replaced with a No Mavlink warning so the last seen values still show
@@ -109,6 +108,7 @@ void writePanels(){
     panLogo();
   }*/
   if(ISd(panel % npanels,CALLSIGN_BIT)) panCALLSIGN(panCALLSIGN_XY[0][panel], panCALLSIGN_XY[1][panel]); //call sign even in off panel
+  force_redraw = 0;
   
     // OSD debug for development (Shown on top-middle panels) 
 #ifdef membug
@@ -132,7 +132,7 @@ void writePanels(){
 #define REDRAW_CHECKF(val) \
     static float last_val = -1; \
 \
-    if (abs(val - last_val) < 0.001f && !force_redraw) \
+    if (fabs(val - last_val) < 0.001f && !force_redraw) \
         return; \
     last_val = val;
 
@@ -769,24 +769,43 @@ void panHomeDis(int first_col, int first_line){
 void panHorizon(int first_col, int first_line) {
     int i, ilstop;
     static float last_pitch = -1, last_roll = -1;
+    static uint8_t buffer2[AH_COLS * AH_ROWS];
 
-    ilstop = min(first_line, (MAX7456_screen_rows - ILS_ROWS) / 2);
-    i = min(ILS_ROWS, AH_ROWS);
+    if (force_redraw || fabs(last_pitch - osd_pitch) > 0.1 ||
+            fabs(last_roll - osd_roll) > 0.2) {
+        uint8_t buffer1[AH_COLS * AH_ROWS];
+        uint8_t j, line = first_line;
 
-    if (force_redraw || abs(last_pitch - osd_pitch) > 0.05 ||
-            abs(last_roll - osd_roll) > 0.1) {
-        osd.setPanel(first_col, first_line);
-        osd.openPanel();
+        for (j = 0; j < sizeof(buffer1); j++)
+            buffer1[j] = 0;
+        show_horizon(first_col, first_line, buffer1);
 
-        for (i = 0; i < AH_COLS; i++)
-            osd.printf_P(PSTR("              |"));
-
-        osd.closePanel();
-        showHorizon(first_col, first_line);
+        for (j = 0; j < sizeof(buffer1); line++) {
+            uint8_t k, prev = 0;
+            
+            for (k = 0; k < AH_COLS - 1; k++, j++)
+                if (buffer1[j] != buffer2[j]) {
+                    buffer2[j] = buffer1[j];
+                    if (!prev) {
+                        osd.setPanel(first_col + k, line);
+                        osd.openPanel();
+                        prev = j;
+                    }
+                    while (prev < j)
+                        osd.write(buffer1[prev++]);
+                    osd.write(buffer1[prev++]);
+                }
+            if (prev)
+                osd.closePanel();
+            j++;
+        }
 
         last_pitch = osd_pitch;
         last_roll = osd_roll;
     }
+
+    ilstop = min(first_line, (MAX7456_screen_rows - ILS_ROWS) / 2);
+    i = min(ILS_ROWS, AH_ROWS);
 
     REDRAW_CHECK((int) ((osd_alt - osd_home_alt) * 10));
 
@@ -1157,8 +1176,15 @@ void showArrow(uint8_t rotate_arrow,uint8_t method) {
 #define ANGLE_2			25			// angle above we switch to line set 2
 #define PITCH_0_Y		(MAX7456_screen_rows / 2 - 1)
 
+static void inline ah_print_char(int col, int row,
+        uint8_t *cache, uint8_t ch) {
+    row = AH_ROWS - row - 1;
+    cache[col + AH_COLS * row] = ch;
+}
+
 void horiz_line(int pitch_offset, int len, int start_col, int start_row,
-        int line_set, int line_set_overflow, int subval_overflow) {
+        int line_set, int line_set_overflow, int subval_overflow,
+        uint8_t *cache) {
     float rsin = sin(osd_roll / 180.0 * 3.1415);
     float rcos = cos(osd_roll / 180.0 * 3.1415);
     int x0 = (MAX7456_screen_cols - 2 * start_col) * CHAR_COLS / 2 +
@@ -1185,36 +1211,33 @@ void horiz_line(int pitch_offset, int len, int start_col, int start_row,
           int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL_HORIZ);
 
 	  // print the line char
-          osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
-          osd.write(line_set + subval);
+          ah_print_char(col, row, cache, line_set + subval);
 
 	  // check if we have to print an overflow line char
-	  if (subval >= CHAR_SPECIAL_HORIZ - 1 && row < AH_ROWS - 1) {
-            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 2);
-            osd.write(line_set + subval - CHAR_SPECIAL_HORIZ);
-	  } else if (subval <= 0 && row) {
-            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 0);
-            osd.write(line_set + subval + CHAR_SPECIAL_HORIZ);
-	  }
+          if (subval >= CHAR_SPECIAL_HORIZ - 1 && row < AH_ROWS - 1) {
+              ah_print_char(col, row + 1, cache,
+                      line_set + subval - CHAR_SPECIAL_HORIZ);
+          } else if (subval <= 0 && row) {
+              ah_print_char(col, row - 1, cache,
+                      line_set + subval + CHAR_SPECIAL_HORIZ);
+          }
         } else {
           int subval = (y - (row * CHAR_ROWS)) / (CHAR_ROWS / CHAR_SPECIAL);
 
 	  // print the line char
-          osd.openSingle(start_col + col, start_row + AH_ROWS - row - 1);
-          osd.write(line_set + subval + 1);
+          ah_print_char(col, row, cache, line_set + subval + 1);
 
 	  // check if we have to print an overflow line char
-	  if (subval >= subval_overflow && row < AH_ROWS - 1) {	// only if it is a char which needs overflow and if it is not the upper most row
-            osd.openSingle(start_col + col, start_row + AH_ROWS - row - 2);
-            osd.write(line_set_overflow + subval + 1 - OVERFLOW_CHAR_OFFSET);
-	  }
+          if (subval >= subval_overflow && row < AH_ROWS - 1) {	// only if it is a char which needs overflow and if it is not the upper most row
+              ah_print_char(col, row + 1, cache,
+                      line_set_overflow + subval + 1 - OVERFLOW_CHAR_OFFSET);
+          }
         }
     }
 }
 
 // Calculate and show artificial horizon
-// used formula: y = m * x + n <=> y = tan(a) * x + n
-void showHorizon(int start_col, int start_row) {
+void show_horizon(int start_col, int start_row, uint8_t *cache) {
     int roll;
     int line_set = LINE_SET_STRAIGHT;
     int line_set_overflow = 0;
@@ -1233,7 +1256,7 @@ void showHorizon(int start_col, int start_row) {
 	    line_set_overflow = LINE_SET_P_O_STAG_1;
             subval_overflow = 8;
 	}
-    } else {								// negative angle line chars
+    } else {					// negative angle line chars
 	roll = roll > 90 ? roll - 179 : roll;
         if (abs(roll) > ANGLE_2) {
 	    line_set = LINE_SET_N___STAG_2;
@@ -1246,11 +1269,16 @@ void showHorizon(int start_col, int start_row) {
 	}
     }
 
-    horiz_line(0, 32, start_col, start_row, line_set, line_set_overflow, subval_overflow);
-    horiz_line(-22.5, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
-    horiz_line(22.5, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
-    horiz_line(-45, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
-    horiz_line(45, 16, start_col, start_row, line_set, line_set_overflow, subval_overflow);
+    horiz_line(0, 32, start_col, start_row, line_set, line_set_overflow,
+            subval_overflow, cache);
+    horiz_line(-22.5, 16, start_col, start_row, line_set, line_set_overflow,
+            subval_overflow, cache);
+    horiz_line(22.5, 16, start_col, start_row, line_set, line_set_overflow,
+            subval_overflow, cache);
+    horiz_line(-45, 16, start_col, start_row, line_set, line_set_overflow,
+            subval_overflow, cache);
+    horiz_line(45, 16, start_col, start_row, line_set, line_set_overflow,
+            subval_overflow, cache);
 }
 
 // Calculates and shows verical speed aid
