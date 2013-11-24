@@ -194,8 +194,8 @@ void loop()
         lastMAVBeat = millis();//Preventing error from delay sensing
     }*/
 
-    static last_update = 0;
-    if (read_fc_link() || (unsigned int) (millis() - last_update) >= 1000) {
+    static uint16_t last_update = 0;
+    if (read_fc_link() || (unsigned int) (millis() - last_update) >= 500) {
         update();
         last_update = millis();
     }
