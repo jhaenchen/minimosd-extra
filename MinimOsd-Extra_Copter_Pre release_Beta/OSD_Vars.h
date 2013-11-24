@@ -120,8 +120,8 @@ static float        osd_alt_to_home = 0;
 static long         osd_home_distance = 0;          // distance from home
 static uint8_t      osd_home_direction = 1;         // Arrow direction pointing to home (1-16 to CW loop)
 
-static int16_t       osd_pitch = 0;                  // pitch from DCM
-static int16_t       osd_roll = 0;                   // roll from DCM
+static float        osd_pitch = 0;                  // pitch from DCM
+static float        osd_roll = 0;                   // roll from DCM
 //static int8_t       osd_yaw = 0;                    // relative heading form DCM
 static float        osd_heading = 0;                // ground course heading from GPS
 static float        glide = 0;

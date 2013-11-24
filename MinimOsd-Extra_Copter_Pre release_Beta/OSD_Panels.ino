@@ -738,7 +738,7 @@ void panHorizon(int first_col, int first_line) {
 void panPitch(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%4i%c%c",osd_pitch,0x05,0x07);
+    osd.printf("%4.0f%c%c",osd_pitch,0x05,0x07);
     osd.closePanel();
 }
 
@@ -752,7 +752,7 @@ void panPitch(int first_col, int first_line){
 void panRoll(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%4i%c%c",osd_roll,0x05,0x06);
+    osd.printf("%4.0f%c%c",osd_roll,0x05,0x06);
     osd.closePanel();
 }
 
@@ -1101,7 +1101,7 @@ void horiz_line(int pitch_offset, int len, int start_col, int start_row,
     int maxx = max(x1, x2) / CHAR_COLS;
 
     for (int col = minx / CHAR_COLS; col <= maxx; col++) {
-        if (col < 0 || col >= AH_COLS)
+        if (col < 0 || col >= AH_COLS - 1)
             continue;
         int y = y1 + (col * CHAR_COLS - minx + CHAR_COLS / 2) * yd;
         if (y < 0 || y >= AH_TOTAL_LINES)
@@ -1147,7 +1147,7 @@ void showHorizon(int start_col, int start_row) {
     int line_set = LINE_SET_STRAIGHT;
     int line_set_overflow = 0;
     int subval_overflow = 9;
-    
+
     // preset the line char attributes
     roll = osd_roll;
     if ((roll >= 0 && roll < 90) || (roll >= -179 && roll < -90)) {	// positive angle line chars
