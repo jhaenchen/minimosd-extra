@@ -33,14 +33,15 @@ int read_fc_link(void) {
 
 	ret = 1;
 
-#define LINK_BARO_ALT 0x80
+#define LINK_ALT      0x80
 #define LINK_FLAGS    0x81
 #define LINK_STATUS   0x82
 #define LINK_ATTITUDE 0x83
 #define LINK_ESCDATA  0x84
+#define LINK_GPS      0x85
 
         switch (c) {
-        case LINK_BARO_ALT:
+        case LINK_ALT:
             param = readbyte() << 8;
             param |= readbyte();
             osd_alt = param / 10.0f;
@@ -91,19 +92,25 @@ int read_fc_link(void) {
             param |= readbyte();
             osd_esctemp[i] = param;
             break;
+            
+        case LINK_GPS:
+            param = readbyte();
+            osd_fix_type = param & 15;
+            osd_satellites_visible = param >> 4;
+            param = readbyte() << 16;
+            param = readbyte() << 8;
+            param = readbyte() << 0;
+            osd_lat = param / (0x1000000 / 180.0);
+            if (osd_lat > 90.0)
+                osd_lat -= 180.0;
+            param = readbyte() << 16;
+            param = readbyte() << 8;
+            param = readbyte() << 0;
+            osd_lon = param / (0x1000000 / 360.0);
+            if (osd_lat > 180.0)
+                osd_lat -= 360.0;
+            break;
 
-/*
-            case MAVLINK_MSG_ID_GPS_RAW_INT:
-                {
-                    osd_gps_alt = mavlink_msg_gps_raw_int_get_alt(&msg) / 1000.0f;
-                    osd_lat = mavlink_msg_gps_raw_int_get_lat(&msg) / 10000000.0f;
-                    osd_lon = mavlink_msg_gps_raw_int_get_lon(&msg) / 10000000.0f;
-                    osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
-                    osd_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
-                    osd_cog = mavlink_msg_gps_raw_int_get_cog(&msg);
-                }
-                break;
-*/
         default:
             ret = 0;
             continue;
