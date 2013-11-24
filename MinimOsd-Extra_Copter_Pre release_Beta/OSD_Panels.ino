@@ -1256,6 +1256,7 @@ void showHorizon(int start_col, int start_row) {
 // Calculates and shows verical speed aid
 void showILS(int start_col, int start_row, int height) {
     char str[20], len;
+    static char prev_len = 0;
 #define UNIT_PER_CHAR 2.5f
 #define CH_PER_LONGCHAR 4
 #define ZERO_ALT_OFFSET (18 - 7) /* Pixel height of the cur.alt. marker triangle tip */
@@ -1309,23 +1310,27 @@ void showILS(int start_col, int start_row, int height) {
     for (int i = 0; i < len; i++)
         osd.write(0xbe);
     osd.write(0x69);
-    osd.write(' ');
+    for (int i = len; i < prev_len; i++)
+        osd.write(' ');
     osd.write('|');
     /* Row 2 */
     osd.write(0x6d);
     for (int i = 0; i < len; i++)
         osd.write(str[i]);
     osd.write(0x6a);
-    osd.write(' ');
+    for (int i = len; i < prev_len; i++)
+        osd.write(' ');
     osd.write('|');
     /* Row 2 */
     osd.write(0x6c);
     for (int i = 0; i < len; i++)
         osd.write(0xcb);
     osd.write(0x6b);
-    osd.write(' ');
+    for (int i = len; i < prev_len; i++)
+        osd.write(' ');
     osd.closePanel();
 #endif
+    prev_len = len;
 }
 
 void do_converts()
