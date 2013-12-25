@@ -108,6 +108,17 @@ void writePanels(){
     panLogo();
   }*/
   if(ISd(panel % npanels,CALLSIGN_BIT)) panCALLSIGN(panCALLSIGN_XY[0][panel], panCALLSIGN_XY[1][panel]); //call sign even in off panel
+#if 0
+  static uint16_t last_ts = 0;
+  uint16_t new_ts = millis();
+  uint16_t period = new_ts - last_ts;
+  last_ts = new_ts;
+  osd.setPanel(1, 13);
+  osd.openPanel();
+  if (period > 10.1f)
+      osd.write_num(1000.0f / period, 1, 3, 0); /* FPS */
+  osd.closePanel();
+#endif
   force_redraw = 0;
   
     // OSD debug for development (Shown on top-middle panels) 
