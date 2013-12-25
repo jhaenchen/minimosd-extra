@@ -82,6 +82,10 @@ void setHomeVars(OSD &osd)
     osd_got_home = 1;
   }
   else if(osd_got_home == 1){
+    /* Skip the calculation if we've not moved or not received new coords */
+    if (fabs(osd_lat - prev_lat) < 0.5f && fabs(osd_lon - prev_lon) < 0.5f)
+      return;
+
     // shrinking factor for longitude going to poles direction
     float rads = fabs(osd_home_lat) * 0.0174532925;
     double scaleLongDown = cos(rads);
@@ -99,6 +103,9 @@ void setHomeVars(OSD &osd)
     bearing -= 180; // absolute return direction
     bearing = bearing - osd_heading; // relative home direction
     osd_home_direction = (bearing * 16 + 7) / 360 % 16 + 1;//array of arrows =)
+
+    prev_lat = osd_lat;
+    prev_lon = osd_lon;
   }
 }
 
