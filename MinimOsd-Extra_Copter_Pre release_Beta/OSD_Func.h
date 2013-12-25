@@ -51,11 +51,12 @@ void setHomeVars(OSD &osd)
 
   osd_alt_to_home = (osd_alt - osd_home_alt);
   //Check arm/disarm switching.
-  if (motor_armed ^ last_armed){
+  if (motor_armed && !last_armed){
     //If motors armed, reset home in Arducopter version
     osd_got_home = !motor_armed;
+    haltset = !motor_armed;
+    last_armed = motor_armed;
   }
-  last_armed = motor_armed;
 
   // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 25*120ms = 3s)
   if(osd_alt_cnt < 15 && fabs(osd_alt) > 0.1f){
