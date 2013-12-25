@@ -159,7 +159,9 @@ void panCOG(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
 
-    showArrow((uint8_t)osd_COG_arrow_rotate_int,2);
+    showArrow((uint8_t) osd_COG_arrow_rotate_int);
+    osd.write_num(off_course, 0, 4, 0);
+    osd.write(0x05);
     osd.closePanel();
 }
 
@@ -415,7 +417,9 @@ void panWindSpeed(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
 
-    showArrow((uint8_t)osd_wind_arrow_rotate_int,1); //print data to OSD
+    osd.printf("%c%3.0f%c", 0x1d, (double) (osd_windspeed * converts), spe);
+    showArrow((uint8_t) osd_wind_arrow_rotate_int); // print data to OSD
+    osd.printf("%2.0f%c", (double) (nor_osd_windspeed * converts), spe);
     osd.closePanel();
 }
 
@@ -1059,7 +1063,7 @@ void panRose(int first_col, int first_line){
 //    wp_target_bearing_rotate_int = round(((float)wp_target_bearing - osd_heading)/360.0 * 16.0) + 1; //Convert to int 0-16 
 //    if(wp_target_bearing_rotate_int < 0 ) wp_target_bearing_rotate_int += 16; //normalize  
 
-//    showArrow((uint8_t)wp_target_bearing_rotate_int,0);
+//    showArrow((uint8_t)wp_target_bearing_rotate_int);
 //    osd.closePanel();
 //}
 
@@ -1083,7 +1087,7 @@ void panWPDis(int first_col, int first_line){
     else if (xtrack_error < -999) xtrack_error = -999;
 
     osd.printf("%c%c%2i%c%4.0f%c|",0x57, 0x70, wp_number,0x0,(double)((float)(wp_dist) * converth),high);
-    showArrow((uint8_t)wp_target_bearing_rotate_int,0);
+    showArrow((uint8_t)wp_target_bearing_rotate_int);
     if (osd_mode == 10){
         osd.printf("%c%c%c%4.0f%c", 0x20, 0x58, 0x65, (double) (xtrack_error* converth), high);
     }else{
@@ -1107,7 +1111,7 @@ void panHomeDir(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     if (osd_home_distance >= 5)
-        showArrow((uint8_t) osd_home_direction, 0);
+        showArrow((uint8_t) osd_home_direction);
     else {
         osd.write(' ');
         osd.write(' ');
@@ -1147,16 +1151,13 @@ void panFlightMode(int first_col, int first_line){
 
 // ---------------- EXTRA FUNCTIONS ----------------------
 // Show those fancy 2 char arrows
-void showArrow(uint8_t rotate_arrow,uint8_t method) {  
+void showArrow(uint8_t rotate_arrow) {
     int arrow_set1 = 0x90;
-    //We trust that we receive rotate_arrow [1, 16] so 
-    //it's no needed (rotate_arrow <= 16) in the if clause
+    // We trust that we receive rotate_arrow [1, 16] so
+    // it's no needed (rotate_arrow <= 16) in the if clause
     arrow_set1 += rotate_arrow * 2 - 2;
-    //arrow_set2 = arrow_set1 + 1;
-//    if(method == 1) osd.printf("%c%3.0f%c|%c%c%2.0f%c",0x1D,(double)(osd_windspeed * converts),spe, (byte)arrow_set1, (byte)(arrow_set1 + 1),(double)(osd_windspeedz * converts),spe);
-    if(method == 1) osd.printf("%c%3.0f%c|%c%c%2.0f%c",0x1d,(double)(osd_windspeed * converts),spe, arrow_set1, arrow_set1 + 1,(double)(nor_osd_windspeed * converts),spe);
-    else if(method == 2) osd.printf("%c%c%4i%c", arrow_set1, arrow_set1 + 1, off_course, 0x05);   
-    else osd.printf("%c%c", arrow_set1, arrow_set1 + 1);
+    osd.write(arrow_set1)
+    osd.write(arrow_set1 + 1);
 }
 
 // Calculate and shows Artificial Horizon
