@@ -68,9 +68,9 @@ void setHomeVars(OSD &osd)
   // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 3s)
   // calculate osd_heading if not available (0), or maybe do it in the proto
   if(!haltset && fabs(osd_alt) > 0.1f){
-    if(fabs(osd_alt_prev - osd_alt) > 0.5f || osd_zerr > 5.0f){
+    if(fabs(prev_alt - osd_alt) > 0.5f || osd_zerr > 5.0f){
       osd_alt_millis = millis();
-      osd_alt_prev = osd_alt;
+      prev_alt = osd_alt;
     } else if (millis() - osd_alt_millis >= 3000) {
       osd_home_alt = osd_alt;  // take this stable osd_alt as osd_home_alt
       haltset = 1;
@@ -101,9 +101,7 @@ void setHomeVars(OSD &osd)
     //DIR to Home
     bearing = 720 + 90 + atan2(dstlat * scaleLongUp, -dstlon) *
         57.295775f; // absolute home direction
-    bearing -= 180; // absolute return direction
-    bearing = bearing - osd_heading; // relative home direction
-    osd_home_direction = (bearing * 16 + 7) / 360 % 16 + 1;//array of arrows =)
+    osd_home_direction = bearing - 180; // absolute return direction
 
     /* If we're not receiving COG/speed information, calculate our own */
     if (osd_cog == prev_cog) {

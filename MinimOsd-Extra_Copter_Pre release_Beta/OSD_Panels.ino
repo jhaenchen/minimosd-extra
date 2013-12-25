@@ -1115,14 +1115,21 @@ void panWPDis(int first_col, int first_line){
 // Status : not tested
 
 void panHomeDir(int first_col, int first_line){
+    uint8_t arrow_idx;
+    int rel;
+
     if (!osd_got_home)
         return;
-    REDRAW_CHECK((uint8_t) osd_home_direction);
+
+    rel = osd_home_direction + 360 - osd_heading; // relative home direction
+    arrow_idx = (rel * 16 + 7) / 360 % 16 + 1;//array of arrows =)
+
+    REDRAW_CHECK(arrow_idx);
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     if (osd_home_distance >= 5)
-        showArrow((uint8_t) osd_home_direction);
+        showArrow(arrow_idx);
     else {
         osd.write(' ');
         osd.write(' ');
@@ -1167,7 +1174,7 @@ void showArrow(uint8_t rotate_arrow) {
     // We trust that we receive rotate_arrow [1, 16] so
     // it's no needed (rotate_arrow <= 16) in the if clause
     arrow_set1 += rotate_arrow * 2 - 2;
-    osd.write(arrow_set1)
+    osd.write(arrow_set1);
     osd.write(arrow_set1 + 1);
 }
 
