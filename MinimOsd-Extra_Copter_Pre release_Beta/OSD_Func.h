@@ -52,6 +52,7 @@ void setHomeVars(OSD &osd)
   static bool last_armed = 0;
   static float prev_lat = 0;
   static float prev_lon = 0;
+  static float prev_alt = 0;
   static uint16_t prev_cog = 0;
 
   osd_alt_to_home = (osd_alt - osd_home_alt);
@@ -104,6 +105,19 @@ void setHomeVars(OSD &osd)
     bearing = bearing - osd_heading; // relative home direction
     osd_home_direction = (bearing * 16 + 7) / 360 % 16 + 1;//array of arrows =)
 
+    /* If we're not receiving COG/speed information, calculate our own */
+    if (osd_cog == prev_cog) {
+      /* DST travelled */
+      dstlat = osd_lat - prev_lat;
+      dstlon = osd_lon - prev_lon;
+      osd_groundspeed = sqrt(sq(dstlat * 111319.5f) +
+          sq(dstlon * 111319.5f * scaleLongDown));
+
+      /* DIR */
+      osd_cog = (uint32_t) (72000.0f + 9000.0f +
+          atan2(dstlat * scaleLongUp, -dstlon) * 5729.5775f) % 36000;
+    }
+    prev_cog = osd_cog;
     prev_lat = osd_lat;
     prev_lon = osd_lon;
   }
