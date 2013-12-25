@@ -88,18 +88,18 @@ void setHomeVars(OSD &osd)
 
     // shrinking factor for longitude going to poles direction
     float rads = fabs(osd_home_lat) * 0.0174532925;
-    double scaleLongDown = cos(rads);
-    double scaleLongUp   = 1.0f/cos(rads);
+    float scaleLongDown = cos(rads);
+    float scaleLongUp   = 1.0f/cos(rads);
 
     //DST to Home
-    dstlat = fabs(osd_home_lat - osd_lat) * 111319.5;
-    dstlon = fabs(osd_home_lon - osd_lon) * 111319.5 * scaleLongDown;
+    dstlat = osd_home_lat - osd_lat * 111319.5;
+    dstlon = osd_home_lon - osd_lon * 111319.5 * scaleLongDown;
     osd_home_distance = sqrt(sq(dstlat) + sq(dstlon));
 
     //DIR to Home
     dstlon = (osd_home_lon - osd_lon); //OffSet_X
     dstlat = (osd_home_lat - osd_lat) * scaleLongUp; //OffSet Y
-    bearing = 720 + 90 + atan2(dstlat, -dstlon) * 57.295775; // absolute home direction
+    bearing = 720 + 90 + atan2(dstlat, -dstlon) * 57.295775f; // absolute home direction
     bearing -= 180; // absolute return direction
     bearing = bearing - osd_heading; // relative home direction
     osd_home_direction = (bearing * 16 + 7) / 360 % 16 + 1;//array of arrows =)
