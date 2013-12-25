@@ -104,6 +104,8 @@ static float        osd_climb = 0;
 
 static float        osd_lat = 0;                    // latidude
 static float        osd_lon = 0;                    // longitude
+static float        osd_err = 0;                    // horiz. error/precision
+static float        osd_zerr = 0;                   // vert. error/precision
 //static float        not_moving_lat = 0;             // latidude with uav not moving
 //static float        not_moving_lon = 0;             // longitude with uav not moving
 static unsigned long not_moving_since = 0;          // get time since uav not moving

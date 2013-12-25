@@ -50,6 +50,7 @@ void setHomeVars(OSD &osd)
   int bearing;
 
   osd_alt_to_home = (osd_alt - osd_home_alt);
+
   //Check arm/disarm switching.
   if (motor_armed && !last_armed){
     //If motors armed, reset home in Arducopter version
@@ -58,21 +59,17 @@ void setHomeVars(OSD &osd)
     last_armed = motor_armed;
   }
 
-  // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 25*120ms = 3s)
-  if(osd_alt_cnt < 15 && fabs(osd_alt) > 0.1f){
-    if(fabs(osd_alt_prev - osd_alt) > 0.5f){
-      osd_alt_cnt = 0;
+  // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 3s)
+  // calculate osd_heading if not available (0), or maybe do it in the proto
+  if(!haltset && fabs(osd_alt) > 0.1f){
+    if(fabs(osd_alt_prev - osd_alt) > 0.5f || osd_zerr > 5.0f){
+      osd_alt_millis = millis();
       osd_alt_prev = osd_alt;
-    }
-    else
-    {
-      if(++osd_alt_cnt >= 15){
-        osd_home_alt = osd_alt;  // take this stable osd_alt as osd_home_alt
-        haltset = 1;
-      }
+    } else if (millis() - osd_alt_millis >= 3000) {
+      osd_home_alt = osd_alt;  // take this stable osd_alt as osd_home_alt
+      haltset = 1;
     }
   }
-  return;////
 
   if(osd_got_home == 0 && osd_fix_type > 1){
     osd_home_lat = osd_lat;
