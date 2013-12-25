@@ -144,7 +144,7 @@ void writePanels(){
 // Staus  : done
 
 void panCOG(int first_col, int first_line){
-    off_course = (osd_cog / 100 - osd_heading) ; //[-360, 360]
+    int16_t off_course = (osd_cog / 100 - osd_heading) ; //[-360, 360]
     osd_COG_arrow_rotate_int = ((int)round((float)(off_course/360.0) * 16.0) + 16) % 16 + 1; //[1, 16]
     //if(osd_COG_arrow_rotate_int < 0 ) osd_COG_arrow_rotate_int += 16; //Normalize [0, 16]
     //osd_COG_arrow_rotate_int = osd_COG_arrow_rotate_int % 16 + 1; //[1, 16]

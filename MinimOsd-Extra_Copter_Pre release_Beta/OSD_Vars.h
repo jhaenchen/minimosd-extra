@@ -29,7 +29,6 @@ static float        eff = 0; //Efficiency
 
 static uint8_t      base_mode=0;
 static bool         motor_armed = 0;
-static bool         last_armed = 0;
 static bool         acc_valid = 1;
 static bool         mag_valid = 1;
 static bool         nosignal = 1;
@@ -112,7 +111,6 @@ static unsigned long not_moving_since = 0;          // get time since uav not mo
 static uint8_t      osd_satellites_visible = 0;     // number of satelites
 static uint8_t      osd_fix_type = 0;               // GPS lock 0-1=no fix, 2=2D, 3=3D
 static uint16_t     osd_cog;                        // Course over ground
-static int16_t      off_course;
 
 static uint8_t      osd_got_home = 0;               // tels if got home position or not
 static float        osd_home_lat = 0;               // home latidude
@@ -136,9 +134,6 @@ static float        osd_windspeedz = 0;
 static float        osd_winddirection = 0;
 static int8_t       osd_wind_arrow_rotate_int;
 static int8_t       osd_COG_arrow_rotate_int;
-
-static uint8_t      osd_alt_cnt = 0;              // counter for stable osd_alt
-static float        osd_alt_prev = 0;             // previous altitude
 
 static float        osd_groundspeed = 0;            // ground speed
 static uint8_t     osd_throttle = 0;               // throtle

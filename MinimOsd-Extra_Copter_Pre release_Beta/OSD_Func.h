@@ -47,7 +47,12 @@ char setBatteryPic(uint16_t bat_level)
 void setHomeVars(OSD &osd)
 {
   float dstlon, dstlat;
-  int bearing;
+  int bearing, now;
+  static int osd_alt_millis = 0;
+  static bool last_armed = 0;
+  static float prev_lat = 0;
+  static float prev_lon = 0;
+  static uint16_t prev_cog = 0;
 
   osd_alt_to_home = (osd_alt - osd_home_alt);
 
