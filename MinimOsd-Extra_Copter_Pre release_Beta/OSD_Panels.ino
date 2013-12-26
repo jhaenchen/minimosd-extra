@@ -156,23 +156,34 @@ void writePanels(){
 
 void panCOG(int first_col, int first_line){
     int16_t off_course = (osd_cog / 100 - osd_heading) ; //[-360, 360]
-    osd_COG_arrow_rotate_int = ((int)round((float)(off_course/360.0) * 16.0) + 16) % 16 + 1; //[1, 16]
-    //if(osd_COG_arrow_rotate_int < 0 ) osd_COG_arrow_rotate_int += 16; //Normalize [0, 16]
-    //osd_COG_arrow_rotate_int = osd_COG_arrow_rotate_int % 16 + 1; //[1, 16]
+    int8_t osd_COG_arrow_rotate_int = ((int) round((float) (off_course * (16.0f / 360.0f))) + 16) % 16 + 1; //[1, 16]
+
     if (off_course > 180){
        off_course += - 360;
     }else if (off_course < -180){
        off_course += + 360;
     }
+    if (osd_groundspeed < 0.2f)
+        osd_COG_arrow_rotate_int = 0;
 
     REDRAW_CHECK(osd_COG_arrow_rotate_int);
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
 
-    showArrow((uint8_t) osd_COG_arrow_rotate_int);
-    osd.write_num(off_course, 0, 4, 0);
-    osd.write(0x05);
+    if (osd_COG_arrow_rotate_int) {
+        showArrow(osd_COG_arrow_rotate_int);
+        osd.write_num(off_course, 0, 4, 0);
+        osd.write(0x05);
+    } else {
+        osd.write(' ');
+        osd.write(' ');
+        osd.write(' ');
+        osd.write(' ');
+        osd.write(' ');
+        osd.write(' ');
+        osd.write(' ');
+    }
     osd.closePanel();
 }
 
@@ -1123,12 +1134,14 @@ void panHomeDir(int first_col, int first_line){
 
     rel = osd_home_direction + 360 - osd_heading; // relative home direction
     arrow_idx = (rel * 16 + 7) / 360 % 16 + 1;//array of arrows =)
+    if (osd_home_distance < 5)
+        arrow_idx = 0;
 
     REDRAW_CHECK(arrow_idx);
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    if (osd_home_distance >= 5)
+    if (arrow_idx)
         showArrow(arrow_idx);
     else {
         osd.write(' ');

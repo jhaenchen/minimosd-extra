@@ -92,10 +92,10 @@ int read_fc_link(void) {
             param |= readbyte();
             osd_esctemp[i] = param;
             break;
-            
+
         case LINK_GPS:
             param = readbyte();
-            osd_fix_type = param & 15;
+            osd_fix_type = param & 3;
             osd_satellites_visible = param >> 4;
             param = readbyte() << 16;
             param = readbyte() << 8;
@@ -107,8 +107,8 @@ int read_fc_link(void) {
             param = readbyte() << 8;
             param = readbyte() << 0;
             osd_lon = param / (0x1000000 / 360.0);
-            if (osd_lat > 180.0)
-                osd_lat -= 360.0;
+            if (osd_lon > 180.0)
+                osd_lon -= 360.0;
             break;
 
         default:

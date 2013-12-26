@@ -133,7 +133,6 @@ static float        osd_windspeed = 0;
 static float        osd_windspeedz = 0;
 static float        osd_winddirection = 0;
 static int8_t       osd_wind_arrow_rotate_int;
-static int8_t       osd_COG_arrow_rotate_int;
 
 static float        osd_groundspeed = 0;            // ground speed
 static uint8_t     osd_throttle = 0;               // throtle
