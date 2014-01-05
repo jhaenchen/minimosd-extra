@@ -624,12 +624,18 @@ void panHomeAlt(int first_col, int first_line){
 // Staus  : done
 
 void panVel(int first_col, int first_line){
-    REDRAW_CHECK((uint16_t) (osd_groundspeed * converts));
+    uint16_t val = osd_groundspeed * converts;
+    if (val > 999)
+        val = 999;
+
+    REDRAW_CHECK(val);
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
 
-    osd.printf("%c%3.0f%c", 0x14,(double)(osd_groundspeed * converts),spe);
+    osd.write(0x14); /* GS symbol */
+    osd.write_num(val, 0, 3, 0);
+    osd.write(spe);
     osd.closePanel();
 }
 
@@ -641,11 +647,18 @@ void panVel(int first_col, int first_line){
 // Staus  : done
 
 void panAirSpeed(int first_col, int first_line){
-    REDRAW_CHECK((uint16_t) (osd_airspeed * converts));
+    uint16_t val = osd_airspeed * converts;
+    if (val > 999)
+        val = 999;
+
+    REDRAW_CHECK(val);
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%c%3.0f%c", 0x13, (double)(osd_airspeed * converts), spe);
+
+    osd.write(0x13); /* Airspeed symbol */
+    osd.write_num(val, 0, 3, 0);
+    osd.write(spe);
     osd.closePanel();
 }
 
@@ -993,9 +1006,25 @@ void panGPSats(int first_col, int first_line){
 // Staus  : done
 
 void panGPS(int first_col, int first_line){
+    /* TODO: check diff */
+    int width = 6;
+    if (osd_lat >= 10.0 || osd_lat < 0.0 || osd_lon >= 10.0 ||
+            osd_lon < 0.0) {
+        width += 1;
+        if (osd_lat <= -10.0 || osd_lon >= 100.0 ||
+                osd_lon <= -10.0) {
+            width += 1;
+            if (osd_lon <= -100.0)
+                width += 1;
+        }
+    }
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%c%10.6f|%c%10.6f", 0x03, (double)osd_lat, 0x04, (double)osd_lon);
+    osd.write(0x03);
+    osd.write_num(osd_lat, 5, width, 0); /* FPS */
+    osd.write('|');
+    osd.write(0x04);
+    osd.write_num(osd_lon, 5, width, 0); /* FPS */
     osd.closePanel();
 }
 
