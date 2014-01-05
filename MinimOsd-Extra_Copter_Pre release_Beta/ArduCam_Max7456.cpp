@@ -282,10 +282,10 @@ void OSD::write_num(float num, int dec, int total, char symb) {
     write((len++ ? '0' : 0x86) + (int) fmod(frac, 10.0f));
   }
 #else
-  uint16_t i = num, j = num * 1000.0f;
+  uint16_t i = num;
   uint8_t neg = 0;
   if (num < 0.0f) {
-    i = -num, j = -num * 1000.0f;
+    i = -num, num = -num;
     neg = 1;
     total--;
   }
@@ -314,12 +314,18 @@ void OSD::write_num(float num, int dec, int total, char symb) {
   if (i > 9)
     write((i / 10) % 10 + '0');
   write(i % 10 + '0');
-  if (dec > 0)
-    write((j / 100) % 10 + 0x86);
+  if (dec > 0) {
+    num -= i;
+    write((uint8_t) (num * 10.0f) % 10 + 0x86);
+  }
   if (dec > 1)
-    write((j / 10) % 10 + '0');
+    write((uint8_t) (num * 100.0f) % 10 + '0');
   if (dec > 2)
-    write(j % 10 + '0');
+    write((uint16_t) (num * 1000.0f) % 10 + '0');
+  if (dec > 3)
+    write((uint16_t) (num * 10000.0f) % 10 + '0');
+  if (dec > 4)
+    write((uint32_t) (num * 100000.0f) % 10 + '0');
 #endif
 }
 
