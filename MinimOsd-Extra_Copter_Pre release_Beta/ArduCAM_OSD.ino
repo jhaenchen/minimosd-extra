@@ -205,8 +205,6 @@ void loop()
 /* ******** functions used in main loop() ******** */
 void update()
 {
-    setHeadingPatern();  // generate the heading patern
-
     //osd_battery_pic_A = setBatteryPic(osd_battery_remaining_A);     // battery A remmaning picture
     //osd_battery_pic_B = setBatteryPic(osd_battery_remaining_B);     // battery B remmaning picture
 

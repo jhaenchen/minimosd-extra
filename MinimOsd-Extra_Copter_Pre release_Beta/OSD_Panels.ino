@@ -1054,6 +1054,8 @@ void panHeading(int first_col, int first_line){
 void panRose(int first_col, int first_line){
     REDRAW_CHECK((uint16_t) (osd_heading * 10));
 
+    setHeadingPattern();
+
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     //osd_heading  = osd_yaw;
