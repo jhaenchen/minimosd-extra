@@ -995,11 +995,14 @@ void panGPSats(int first_col, int first_line){
     osd.setPanel(first_col, first_line);
     osd.openPanel();
     
-    const char *gps_str;
-    if(osd_fix_type == 0 || osd_fix_type == 1) gps_str = "\x1F";       
-    else if(osd_fix_type == 2 || osd_fix_type == 3) gps_str = "\x0F";
+    char gps_chr;
+    if (osd_fix_type == 0 || osd_fix_type == 1)
+      gps_chr = 0x1f;       
+    else if(osd_fix_type == 2 || osd_fix_type == 3)
+      gps_chr = 0x0f;
     
-    osd.printf("%s%2i", gps_str, osd_satellites_visible);
+    osd.write(gps_chr);
+    osd.write_num(osd_satellites_visible, 0, 2, 0);
     osd.closePanel();
 }
 
@@ -1045,7 +1048,8 @@ void panHeading(int first_col, int first_line){
 
     osd.setPanel(first_col, first_line);
     osd.openPanel();
-    osd.printf("%4.0f%c", (double)osd_heading, 0x05);
+    osd.write_num(osd_heading, 0, 4, 0);
+    osd.write(0x05);
     osd.closePanel();
 }
 
