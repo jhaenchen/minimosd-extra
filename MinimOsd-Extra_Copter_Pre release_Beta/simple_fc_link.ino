@@ -47,6 +47,8 @@ int read_fc_link(void) {
             osd_alt = param / 10.0f;
             param = readbyte();
             osd_climb = (int8_t) (uint8_t) param / 10.0f;
+
+            setAltVars();
             break;
 
         case LINK_FLAGS:
@@ -109,6 +111,8 @@ int read_fc_link(void) {
             osd_lon = param * (360.0f / 0x1000000);
             if (osd_lon > 180.0f)
                 osd_lon -= 360.0f;
+
+            setGpsVars();
             break;
 
         default:

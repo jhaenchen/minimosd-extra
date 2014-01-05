@@ -44,18 +44,13 @@ char setBatteryPic(uint16_t bat_level)
 
 //------------------ Home Distance and Direction Calculation ----------------------------------
 
-void setHomeVars(OSD &osd)
+void setAltVars(void)
 {
-  float dstlon, dstlat;
-  int bearing, now;
   static int osd_alt_millis = 0;
   static bool last_armed = 0;
-  static float prev_lat = 0;
-  static float prev_lon = 0;
   static float prev_alt = 0;
-  static uint16_t prev_cog = 0;
 
-  osd_alt_to_home = (osd_alt - osd_home_alt);
+  osd_alt_to_home = osd_alt - osd_home_alt;
 
   //Check arm/disarm switching.
   if (!motor_armed && last_armed){
@@ -67,8 +62,8 @@ void setHomeVars(OSD &osd)
 
   // JRChange: osd_home_alt: check for stable osd_alt (must be stable for 3s)
   // calculate osd_heading if not available (0), or maybe do it in the proto
-  if(!haltset && fabs(osd_alt) > 0.1f){
-    if(fabs(prev_alt - osd_alt) > 0.5f || osd_zerr > 5.0f){
+  if (!haltset && fabs(osd_alt) > 0.1f) {
+    if (fabs(prev_alt - osd_alt) > 0.5f || osd_zerr > 5.0f) {
       osd_alt_millis = millis();
       prev_alt = osd_alt;
     } else if (millis() - osd_alt_millis >= 3000) {
@@ -76,23 +71,51 @@ void setHomeVars(OSD &osd)
       haltset = 1;
     }
   }
+}
 
-  if(!osd_got_home && osd_fix_type > 1 && osd_err <= 5.0f){
+void setGpsVars(void)
+{
+  float dstlon, dstlat;
+  int bearing;
+  static float prev_lat = 0;
+  static float prev_lon = 0;
+  static uint16_t prev_cog = 0;
+  static uint16_t prev_millis = 0;
+
+  if (!osd_got_home && osd_fix_type > 1 && osd_err <= 5.0f) {
     osd_home_lat = osd_lat;
     osd_home_lon = osd_lon;
     osd_got_home = 1;
   }
 
-  /* Skip the calculation if we've not moved or not received new coords */
-  if (fabs(osd_lat - prev_lat) < 0.5f / 111319.5f &&
-      fabs(osd_lon - prev_lon) < 0.5f / 111319.5f)
+  if (fabs(osd_lat) < 0.00001f)
     return;
 
   // shrinking factor for longitude going to poles direction
-  float rads = fabs(osd_home_lat) * 0.0174532925f;
+  float rads = fabs(osd_lat) * 0.0174532925f;
   float scaleLongDown = cos(rads);
   float scaleLongUp   = 1.0f / scaleLongDown;
 
+  /* If we're not receiving COG/speed information, calculate our own */
+  if (osd_cog == prev_cog) {
+    uint16_t now = millis();
+    uint16_t timediff = now - prev_millis;
+    prev_millis = now;
+
+    /* DST travelled */
+    dstlat = osd_lat - prev_lat;
+    dstlon = osd_lon - prev_lon;
+    osd_groundspeed = sqrt(sq(dstlat * 111319.5f) +
+        sq(dstlon * 111319.5f * scaleLongDown)) / timediff;
+
+    /* DIR */
+    osd_cog = (uint32_t) (72000.0f + 9000.0f +
+        atan2(dstlat * scaleLongUp, -dstlon) * 5729.5775f) % 36000;
+  }
+
+  /* Skip the calculation if we've not moved or not received new coords */
+  //if (fabs(osd_lat - prev_lat) > 0.5f / 111319.5f ||
+  //    fabs(osd_lon - prev_lon) > 0.5f / 111319.5f)
   if (osd_got_home == 1) {
     //DST to Home
     dstlat = osd_home_lat - osd_lat;
@@ -106,18 +129,6 @@ void setHomeVars(OSD &osd)
     osd_home_direction = bearing - 180; // absolute return direction
   }
 
-  /* If we're not receiving COG/speed information, calculate our own */
-  if (osd_cog == prev_cog && prev_lat) {
-    /* DST travelled */
-    dstlat = osd_lat - prev_lat;
-    dstlon = osd_lon - prev_lon;
-    osd_groundspeed = sqrt(sq(dstlat * 111319.5f) +
-        sq(dstlon * 111319.5f * scaleLongDown));
-
-    /* DIR */
-    osd_cog = (uint32_t) (72000.0f + 9000.0f +
-        atan2(dstlat * scaleLongUp, -dstlon) * 5729.5775f) % 36000;
-  }
   prev_cog = osd_cog;
   prev_lat = osd_lat;
   prev_lon = osd_lon;
@@ -159,4 +170,3 @@ void setFdataVars(){
     if (osd_windspeed > max_osd_windspeed) max_osd_windspeed = osd_windspeed;
   }
 }
-
