@@ -95,6 +95,8 @@ int read_mavlink(){
                     osd_fix_type = mavlink_msg_gps_raw_int_get_fix_type(&msg);
                     osd_satellites_visible = mavlink_msg_gps_raw_int_get_satellites_visible(&msg);
                     osd_cog = mavlink_msg_gps_raw_int_get_cog(&msg);
+
+                    setGpsVars();
                 }
                 break; 
             case MAVLINK_MSG_ID_VFR_HUD:
@@ -105,6 +107,8 @@ int read_mavlink(){
                     osd_throttle = (uint8_t)mavlink_msg_vfr_hud_get_throttle(&msg);
                     osd_alt = mavlink_msg_vfr_hud_get_alt(&msg);
                     osd_climb = mavlink_msg_vfr_hud_get_climb(&msg);
+
+                    setAltVars();
                 }
                 break;
             case MAVLINK_MSG_ID_ATTITUDE:
