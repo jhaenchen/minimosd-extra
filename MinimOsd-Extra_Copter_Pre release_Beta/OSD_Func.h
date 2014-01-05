@@ -58,10 +58,10 @@ void setHomeVars(OSD &osd)
   osd_alt_to_home = (osd_alt - osd_home_alt);
 
   //Check arm/disarm switching.
-  if (motor_armed && !last_armed){
+  if (!motor_armed && last_armed){
     //If motors armed, reset home in Arducopter version
-    osd_got_home = !motor_armed;
-    haltset = !motor_armed;
+    osd_got_home = 0;
+    haltset = 0;
     last_armed = motor_armed;
   }
 
@@ -82,16 +82,18 @@ void setHomeVars(OSD &osd)
     osd_home_lon = osd_lon;
     osd_got_home = 1;
   }
-  else if(osd_got_home == 1){
-    /* Skip the calculation if we've not moved or not received new coords */
-    if (fabs(osd_lat - prev_lat) < 0.5f && fabs(osd_lon - prev_lon) < 0.5f)
-      return;
 
-    // shrinking factor for longitude going to poles direction
-    float rads = fabs(osd_home_lat) * 0.0174532925f;
-    float scaleLongDown = cos(rads);
-    float scaleLongUp   = 1.0f / scaleLongDown;
+  /* Skip the calculation if we've not moved or not received new coords */
+  if (fabs(osd_lat - prev_lat) < 0.5f / 111319.5f &&
+      fabs(osd_lon - prev_lon) < 0.5f / 111319.5f)
+    return;
 
+  // shrinking factor for longitude going to poles direction
+  float rads = fabs(osd_home_lat) * 0.0174532925f;
+  float scaleLongDown = cos(rads);
+  float scaleLongUp   = 1.0f / scaleLongDown;
+
+  if (osd_got_home == 1) {
     //DST to Home
     dstlat = osd_home_lat - osd_lat;
     dstlon = osd_home_lon - osd_lon;
@@ -100,25 +102,25 @@ void setHomeVars(OSD &osd)
 
     //DIR to Home
     bearing = 720 + 90 + atan2(dstlat * scaleLongUp, -dstlon) *
-        57.295775f; // absolute home direction
+      57.295775f; // absolute home direction
     osd_home_direction = bearing - 180; // absolute return direction
-
-    /* If we're not receiving COG/speed information, calculate our own */
-    if (osd_cog == prev_cog) {
-      /* DST travelled */
-      dstlat = osd_lat - prev_lat;
-      dstlon = osd_lon - prev_lon;
-      osd_groundspeed = sqrt(sq(dstlat * 111319.5f) +
-          sq(dstlon * 111319.5f * scaleLongDown));
-
-      /* DIR */
-      osd_cog = (uint32_t) (72000.0f + 9000.0f +
-          atan2(dstlat * scaleLongUp, -dstlon) * 5729.5775f) % 36000;
-    }
-    prev_cog = osd_cog;
-    prev_lat = osd_lat;
-    prev_lon = osd_lon;
   }
+
+  /* If we're not receiving COG/speed information, calculate our own */
+  if (osd_cog == prev_cog && prev_lat) {
+    /* DST travelled */
+    dstlat = osd_lat - prev_lat;
+    dstlon = osd_lon - prev_lon;
+    osd_groundspeed = sqrt(sq(dstlat * 111319.5f) +
+        sq(dstlon * 111319.5f * scaleLongDown));
+
+    /* DIR */
+    osd_cog = (uint32_t) (72000.0f + 9000.0f +
+        atan2(dstlat * scaleLongUp, -dstlon) * 5729.5775f) % 36000;
+  }
+  prev_cog = osd_cog;
+  prev_lat = osd_lat;
+  prev_lon = osd_lon;
 }
 
 void setFdataVars(){
