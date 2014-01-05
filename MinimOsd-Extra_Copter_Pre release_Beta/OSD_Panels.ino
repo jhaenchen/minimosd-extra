@@ -19,7 +19,12 @@ void panLogo(){
 
 static boolean force_redraw = 1;
 
-void writePanels(){ 
+void writePanels() {
+  static uint16_t last_redraw = 0;
+  if ((uint16_t) (millis() - last_redraw) > 10000) {
+    osd_clear = 1;
+    last_redraw = millis();
+  }
 //  if(millis() < (lastMAVBeat + 2200))
 //    waitingMAVBeats = 1;
   //if(ISd(panel,Warn_BIT)) panWarn(panWarn_XY[0][panel], panWarn_XY[1][panel]); // this must be here so warnings are always checked
