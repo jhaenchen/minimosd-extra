@@ -1,3 +1,4 @@
+#define USE_FRSKY
 
 #define on 1
 #define off 0

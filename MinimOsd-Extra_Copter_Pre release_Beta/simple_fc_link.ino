@@ -1,4 +1,4 @@
-#ifndef USE_MAVLINK
+#ifdef USE_SIMPLE_LINK
 
 static bool fc_link_active = false;
 static uint8_t crlf_count = 0;

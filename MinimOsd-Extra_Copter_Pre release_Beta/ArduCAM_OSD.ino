@@ -73,8 +73,12 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 #include <GCS_MAVLink.h>
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
 #define read_fc_link read_mavlink
-#else
+#endif
+#ifdef USE_SIMPLE_LINK
 #define TELEMETRY_SPEED  115200
+#endif
+#ifdef USE_FRSKY
+#define TELEMETRY_SPEED  9600
 #endif
 
 #ifdef membug
