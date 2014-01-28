@@ -69,6 +69,9 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 #endif
 #include <EEPROM.h>
 
+// Configurations
+#include "OSD_Config.h"
+
 #ifdef USE_MAVLINK
 #include <GCS_MAVLink.h>
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
@@ -85,8 +88,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 #include <MemoryFree.h>
 #endif
 
-// Configurations
-#include "OSD_Config.h"
 #include "SimpleTimer.h"
 #include "BetterStream.h"
 #include "ArduCam_Max7456.h"

@@ -44,15 +44,15 @@
 
 static bool fc_link_active = false;
 static uint8_t crlf_count = 0;
-static uint_8 last_packet_type = 0;
-static uint_8 last_packet_step = PACKET_STEP_NONE;
+static uint8_t last_packet_type = 0;
+static uint8_t last_packet_step = PACKET_STEP_NONE;
 
 static uint8_t readbyte() {
 	while (Serial.available() < 1);
 	return Serial.read();
 }
 
-static uint8_t decodeserializedbyte(uint_t c) {
+static uint8_t decodeserializedbyte(uint8_t c) {
 	if (c == 0x5D) {
 		c = readbyte();
 		return c ^ 0x60;
