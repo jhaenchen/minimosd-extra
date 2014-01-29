@@ -37,6 +37,10 @@
 #define ID_Gyro_X             0x40
 #define ID_Gyro_Y             0x41
 #define ID_Gyro_Z             0x42
+#define ID_Angle_Roll        0x43
+#define ID_Angle_Pitch       0x44
+#define ID_Flags               0x45
+#define ID_Throttle           0x46
 
 #define PACKET_STEP_NONE 0
 #define PACKET_STEP_HEAD 1
@@ -69,6 +73,9 @@ int ret_invalid_packet() {
 int read_fc_link(void) {
 	uint32_t param, i;
 	int ret = 0;
+
+	static uint16_t vbat_A_last = 0;
+	static int16_t osd_heading_last = 0;
 
 	/* Grabbing data */
 	while(Serial.available() > 0) {
@@ -141,6 +148,45 @@ osd_lon
 				}
 			else if (last_packet_type == ID_Voltage_Amp_ap)
 				osd_vbat_A = (vbat_A_last + (val * 10)) * 21/1100.0f;
+			else if (last_packet_type == ID_Voltage_Amp_bp)
+				{
+				osd_vbat_A = val * 100 * 21 / 1100.0f;
+				vbat_A_last = val * 100;
+				}
+			else if (last_packet_type == ID_Voltage_Amp_ap)
+				osd_vbat_A = (vbat_A_last + (val * 10)) * 21/1100.0f;
+			else if (last_packet_type == ID_Course_bp)
+			{
+				osd_heading = (int16_t)(val * 100);
+				osd_heading_last = osd_heading;
+			}
+			else if (last_packet_type == ID_Course_ap)
+			{
+				osd_heading = (osd_heading_last + val)/100.0f;
+			}
+			else if (last_packet_type == ID_Angle_Roll)
+			{
+				osd_roll = (int16_t) val;
+			}
+			else if (last_packet_type == ID_Angle_Pitch)
+			{
+				osd_pitch = (int16_t) val;
+			}
+			else if (last_packet_type == ID_Throttle)
+			{
+				osd_throttle = val; // 0-100
+			}
+			else if (last_packet_type == ID_Flags)
+			{
+				motor_armed = (ID_Flags & 1)  ? 1 : 0;
+				osd_fix_type = (ID_Flags & 2)  ? 3 : 0;
+
+				if (ID_Flags&4) osd_mode = 0; // Stab
+				else if (ID_Flags&8) osd_mode = 2; // Alt Hold
+				else if (ID_Flags&32) osd_mode = 6; // RTL
+				else if (ID_Flags&64) osd_mode = 5; // Loiter
+				else osd_mode = 1; // Acro
+			}
 
 			ret_invalid_packet(); // reset
 			fc_link_active = true;
