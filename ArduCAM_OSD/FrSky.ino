@@ -134,10 +134,13 @@ osd_lon
 			else if (last_packet_type == ID_Altitude_ap)
 				osd_alt = (float) (((int16_t)osd_alt) + (val / 100.0f));
 
-			if (last_packet_type == ID_Voltage_Amp_bp)
-				osd_vbat_A = (float) ((int16_t) val) * 1000;
+			else if (last_packet_type == ID_Voltage_Amp_bp)
+				{
+				osd_vbat_A = val * 100 * 21 / 1100.0f;
+				vbat_A_last = val * 100;
+				}
 			else if (last_packet_type == ID_Voltage_Amp_ap)
-				osd_vbat_A = (float) ((((int16_t)osd_vbat_A)/1000 + (val / 100.0f))) * 1000;
+				osd_vbat_A = (vbat_A_last + (val * 10)) * 21/1100.0f;
 
 			ret_invalid_packet(); // reset
 			fc_link_active = true;
