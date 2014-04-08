@@ -75,7 +75,7 @@ void setup()
 {
   byte spi_junk;
   int x;
-  Serial.begin(38400);
+  Serial.begin(115200);
   Serial.flush();
 
   digitalWrite(USBSELECT,HIGH); //disable USB chip
@@ -134,40 +134,57 @@ void setup()
   delay(100);
 }
 
-void processInput()
+void read_print_char(int i)
 {
-char intBuffer[12];
-int i;
 byte x;
-int intLength = inputChars.length() + 1;
-inputChars.toCharArray(intBuffer, intLength);
-
-if (inputChars == "MAX7456")
-{
-  for(i=0;i<256;i++)
-    {
-      font_count = i;
-      for(x = 0; x < 64; x++) character_bitmap[x] = 0;
-      read_NVM();
-      for(x = 0; x < 64; x++) Serial.println(character_bitmap[x], BIN);
-    }
-inputChars = "";
-return;
-}
-
-
-inputChars = "";
-i = atoi(intBuffer);
-if (i<0 || i>255) {
-    Serial.println("Input should be between 0 and 255. You entered: "+i);
-    return;
-    }
 
 font_count = i;
 for(x = 0; x < 64; x++) character_bitmap[x] = 0;
+
 read_NVM();
 
-for(x = 0; x < 64; x++) Serial.println(character_bitmap[x], BIN);
+for(x = 0; x < 64; x++) {
+  if (character_bitmap[x] == 0) Serial.println("00000000");
+  else Serial.println((int)character_bitmap[x], BIN);
+  }
+}
+
+void processInput()
+{
+char intBuffer[12] = "\0\0\0\0\0\0\0\0\0\0\0";
+int i;
+
+if (inputChars == "MAX7456")
+{
+  for(i=0;i<256;i++) read_print_char(i);
+  inputChars = "";
+  return;
+}
+
+int intLength = inputChars.length() + 1;
+inputChars.toCharArray(intBuffer, intLength);
+
+inputChars = "";
+
+if (sscanf(intBuffer, "%d", &i) < 1)
+{
+    Serial.println("Input should be a number. You entered:");
+    Serial.println(intBuffer);
+    return;
+}
+
+char printbuf[64];
+snprintf(printbuf, 63, "Input should be between 0 and 255. You entered: %d", i);
+
+if (i<0 || i>255) {
+    Serial.println(printbuf);
+    return;
+    }
+
+snprintf(printbuf, 63, "You entered: %d", i);
+Serial.println(printbuf);
+
+read_print_char(i);
 Serial.println("");
 }
 
@@ -295,6 +312,8 @@ data.
   {
     spi_transfer(CMAL_reg); // set start address low
     spi_transfer(x);
+
+    while ((spi_transfer(STAT_reg) & STATUS_reg_nvr_busy) != 0x00);
 
     character_bitmap[x] = spi_transfer(CMDO_reg);
   }
