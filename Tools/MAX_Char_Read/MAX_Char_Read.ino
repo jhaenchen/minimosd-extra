@@ -23,7 +23,7 @@
 #define CMAH_reg  0x09
 #define CMAL_reg  0x0A
 #define CMDI_reg  0x0B
-#define CMDO_reg  0x0C
+#define CMDO_reg  0xC0
 #define STAT_reg  0xA0
 
 //MAX7456 commands
@@ -34,17 +34,17 @@
 #define READ_nvr 0x50
 
 // with NTSC
-#define ENABLE_display 0x08
-#define ENABLE_display_vert 0x0c
-#define MAX7456_reset 0x02
-#define DISABLE_display 0x00
+// #define ENABLE_display 0x08
+// #define ENABLE_display_vert 0x0c
+// #define MAX7456_reset 0x02
+// #define DISABLE_display 0x00
 
 // with PAL
 // all VM0_reg commands need bit 6 set
-//#define ENABLE_display 0x48
-//#define ENABLE_display_vert 0x4c
-//#define MAX7456_reset 0x42
-//#define DISABLE_display 0x40
+#define ENABLE_display 0x48
+#define ENABLE_display_vert 0x4c
+#define MAX7456_reset 0x42
+#define DISABLE_display 0x40
 
 #define WHITE_level_80 0x03
 #define WHITE_level_90 0x02
@@ -56,10 +56,10 @@
 #define NVM_ram_size 0x36
 
 // with NTSC
-#define MAX_screen_rows 0x0d //13
+// #define MAX_screen_rows 0x0d //13
 
 // with PAL
-//#define MAX_screen_rows 0x10 //16
+#define MAX_screen_rows 0x10 //16
 
 volatile byte screen_buffer[MAX_font_rom];
 volatile byte character_bitmap[0x40];
@@ -75,7 +75,7 @@ void setup()
 {
   byte spi_junk;
   int x;
-  Serial.begin(115200);
+  Serial.begin(9600);
   Serial.flush();
 
   digitalWrite(USBSELECT,HIGH); //disable USB chip
@@ -129,23 +129,29 @@ void setup()
 
   inputChars = "";
 
-  Serial.println("Ready for text file download");
+  Serial.println("Ready for font query, enter a charcode (0-255) or send MAX7456 to dump it all");
   Serial.println("");
   delay(100);
 }
 
-void read_print_char(int i)
+void read_print_char(int c)
 {
 byte x;
 
-font_count = i;
 for(x = 0; x < 64; x++) character_bitmap[x] = 0;
 
-read_NVM();
+read_NVM((byte)c);
 
 for(x = 0; x < 64; x++) {
-  if (character_bitmap[x] == 0) Serial.println("00000000");
-  else Serial.println((int)character_bitmap[x], BIN);
+  int i = (int)character_bitmap[x];
+  if (i < 2) Serial.print(B0);
+  if (i < 4) Serial.print(B0);
+  if (i < 8) Serial.print(B0);
+  if (i < 16) Serial.print(B0);
+  if (i < 32) Serial.print(B0);
+  if (i < 64) Serial.print(B0);
+  if (i < 128) Serial.print(B0);
+  Serial.println(i, BIN);
   }
 }
 
@@ -156,15 +162,13 @@ int i;
 
 if (inputChars == "MAX7456")
 {
+  Serial.println("MAX7456");
   for(i=0;i<256;i++) read_print_char(i);
-  inputChars = "";
   return;
 }
 
 int intLength = inputChars.length() + 1;
 inputChars.toCharArray(intBuffer, intLength);
-
-inputChars = "";
 
 if (sscanf(intBuffer, "%d", &i) < 1)
 {
@@ -198,7 +202,8 @@ void loop()
             break;
         }
         else if (ch == (int)'\n' || ch == (int)'\r') {
-            processInput();
+            if (inputChars != "") processInput();
+            inputChars = "";
             break;
         }
         else {
@@ -270,15 +275,9 @@ void write_new_screen()
 }
 
 //////////////////////////////////////////////////////////////
-void read_NVM()
+void read_NVM(byte charNum)
 {
   byte x;
-  byte char_address_hi, char_address_lo;
-  byte screen_char;
-
-  char_address_hi = font_count;
-  char_address_lo = 0;
- //Serial.println("read_new_screen");
 
   // disable display
   digitalWrite(MAX7456SELECT,LOW);
@@ -302,25 +301,30 @@ data.
 */
 
   spi_transfer(CMAH_reg); // set start address high
-  spi_transfer(char_address_hi);
+  spi_transfer(charNum);
 
   // transfer 54 bytes from NVM to shadow ram
   spi_transfer(CMM_reg);
   spi_transfer(READ_nvr);
 
+// http://forum.arduino.cc/index.php?topic=8785.msg72061#msg72061
+
+  while ((spi_transfer(STAT_reg) & STATUS_reg_nvr_busy) != 0x00);
+  digitalWrite(MAX7456SELECT,HIGH);
+
   for(x = 0; x < NVM_ram_size; x++) // read 54 (out of 64) bytes of character from shadow ram
   {
+    digitalWrite(MAX7456SELECT,LOW);
+
     spi_transfer(CMAL_reg); // set start address low
     spi_transfer(x);
 
-    while ((spi_transfer(STAT_reg) & STATUS_reg_nvr_busy) != 0x00);
-
-    character_bitmap[x] = spi_transfer(CMDO_reg);
+    spi_transfer(CMDO_reg);
+    character_bitmap[x] = spi_transfer(0xff);
+    digitalWrite(MAX7456SELECT,HIGH);
   }
 
-
-  // wait until bit 5 in the status register returns to 0 (12ms)
-  while ((spi_transfer(STAT_reg) & STATUS_reg_nvr_busy) != 0x00);
+  digitalWrite(MAX7456SELECT,LOW);
 
   spi_transfer(VM0_reg); // turn on screen next vertical
   spi_transfer(ENABLE_display_vert);
