@@ -6,7 +6,7 @@
 // max7456 evaluation kit software
 
 #define DATAOUT 11//11-MOSI
-#define DATAIN  12//12-MISO 
+#define DATAIN  12//12-MISO
 #define SPICLOCK  13//13-sck
 #define MAX7456SELECT 6 //6
 #define USBSELECT 10//10-ss
@@ -23,6 +23,7 @@
 #define CMAH_reg  0x09
 #define CMAL_reg  0x0A
 #define CMDI_reg  0x0B
+#define CMDO_reg  0x0C
 #define STAT_reg  0xA0
 
 //MAX7456 commands
@@ -30,6 +31,8 @@
 #define CLEAR_display_vert 0x06
 #define END_string 0xff
 #define WRITE_nvr 0xa0
+#define READ_nvr 0x50
+
 // with NTSC
 #define ENABLE_display 0x08
 #define ENABLE_display_vert 0x0c
@@ -62,12 +65,10 @@ volatile byte screen_buffer[MAX_font_rom];
 volatile byte character_bitmap[0x40];
 volatile byte ascii_binary[0x08];
 
-volatile byte bit_count;
-volatile byte byte_count;
 volatile int font_count;
-volatile int  incomingByte;
 volatile int  count;
 
+String inputChars;
 
 //////////////////////////////////////////////////////////////
 void setup()
@@ -115,10 +116,7 @@ void setup()
   spi_transfer(ENABLE_display);
   digitalWrite(MAX7456SELECT,HIGH);
 
-  incomingByte = 0;
   count = 0;
-  bit_count = 0;
-  byte_count = 0;
   font_count = 0;
 
   //display all 256 internal MAX7456 characters
@@ -127,83 +125,69 @@ void setup()
     screen_buffer[x] = x;
   }
    count = MAX_font_rom;
-   write_new_screen();  
+   write_new_screen();
+
+  inputChars = "";
 
   Serial.println("Ready for text file download");
   Serial.println("");
-  delay(100);  
+  delay(100);
 }
+
+void processInput()
+{
+char intBuffer[12];
+int i;
+byte x;
+int intLength = inputChars.length() + 1;
+inputChars.toCharArray(intBuffer, intLength);
+
+if (inputChars == "MAX7456")
+{
+  for(i=0;i<256;i++)
+    {
+      font_count = i;
+      for(x = 0; x < 64; x++) character_bitmap[x] = 0;
+      read_NVM();
+      for(x = 0; x < 64; x++) Serial.println(character_bitmap[x], BIN);
+    }
+inputChars = "";
+return;
+}
+
+
+inputChars = "";
+i = atoi(intBuffer);
+if (i<0 || i>255) {
+    Serial.println("Input should be between 0 and 255. You entered: "+i);
+    return;
+    }
+
+font_count = i;
+for(x = 0; x < 64; x++) character_bitmap[x] = 0;
+read_NVM();
+
+for(x = 0; x < 64; x++) Serial.println(character_bitmap[x], BIN);
+Serial.println("");
+}
+
 
 //////////////////////////////////////////////////////////////
 void loop()
 {
-  byte x;
-  
-  if (Serial.available() > 0)
-  {
-    // read the incoming byte:
-    incomingByte = Serial.read();
-
-    switch(incomingByte) // parse and decode mcm file
-    {
-      case 0x0d: // carridge return, end of line
-        //Serial.println("cr");
-       if (bit_count == 8 && (ascii_binary[0] == 0x30 || ascii_binary[0] == 0x31))
-       {
-          // turn 8 ascii binary bytes to single byte '01010101' = 0x55
-          // fill in 64 bytes of character data
-         character_bitmap[byte_count] = decode_ascii_binary();
-         byte_count++;
-         bit_count = 0;
-       }
-       else
-         bit_count = 0;
-      break;
-      case 0x0a: // line feed, ignore
-        //Serial.println("ln");   
-      break;
-      case 0x30: // ascii '0'
-      case 0x31: // ascii '1' 
-        ascii_binary[bit_count] = incomingByte;
-        bit_count++;
-      break;
-      default:
-      break;
+ while (Serial.available()) {
+        int ch = Serial.read();
+        if (ch == -1) {
+            break;
+        }
+        else if (ch == (int)'\n' || ch == (int)'\r') {
+            processInput();
+            break;
+        }
+        else {
+            inputChars += (char) ch;
+        }
     }
-  }
-  
-  // we have one completed character
-  // write the character to NVM 
-  if(byte_count == 64)
-  {
-    write_NVM();    
-    byte_count = 0;
-    font_count++;
-  }
-
-  // we have burned all 256 characters in NVM
-  if(font_count == 256)
-  {
-    font_count = 0;
-
-    // force soft reset on Max7456
-    digitalWrite(MAX7456SELECT,LOW);
-    spi_transfer(VM0_reg);
-    spi_transfer(MAX7456_reset);
-    digitalWrite(MAX7456SELECT,HIGH);
-    delay(500);
-
-   // display all 256 new internal MAX7456 characters
-   for (x = 0; x < MAX_font_rom; x++)
-   {
-      screen_buffer[x] = x;
-   }
-    count = MAX_font_rom;
-    write_new_screen(); 
-    
-    Serial.println("");
-    Serial.println("Done with file download");
-  }
 }
 
 //////////////////////////////////////////////////////////////
@@ -222,12 +206,12 @@ void write_new_screen()
   int x, local_count;
   byte char_address_hi, char_address_lo;
   byte screen_char;
-  
+
   local_count = count;
-  
+
   char_address_hi = 0;
   char_address_lo = 60; // start on third line
- //Serial.println("write_new_screen");   
+ //Serial.println("write_new_screen");
 
   // clear the screen
   digitalWrite(MAX7456SELECT,LOW);
@@ -237,7 +221,7 @@ void write_new_screen()
 
   // disable display
   digitalWrite(MAX7456SELECT,LOW);
-  spi_transfer(VM0_reg); 
+  spi_transfer(VM0_reg);
   spi_transfer(DISABLE_display);
 
   spi_transfer(DMM_reg); //dmm
@@ -269,43 +253,7 @@ void write_new_screen()
 }
 
 //////////////////////////////////////////////////////////////
-byte decode_ascii_binary()
-{
-  byte ascii_byte;
-
-  ascii_byte = 0;
-  
-  if (ascii_binary[0] == 0x31) // ascii '1'
-    ascii_byte = ascii_byte + 128;
-
-  if (ascii_binary[1] == 0x31)
-    ascii_byte = ascii_byte + 64;
-
-  if (ascii_binary[2] == 0x31)
-    ascii_byte = ascii_byte + 32;
-
-  if (ascii_binary[3] == 0x31)
-    ascii_byte = ascii_byte + 16;
-
-  if (ascii_binary[4] == 0x31)
-    ascii_byte = ascii_byte + 8;
-
-  if (ascii_binary[5] == 0x31)
-    ascii_byte = ascii_byte + 4;
-
-  if (ascii_binary[6] == 0x31)
-    ascii_byte = ascii_byte + 2;
-
-  if (ascii_binary[7] == 0x31)
-    ascii_byte = ascii_byte + 1;
-
-  //Serial.print(ascii_byte, HEX);
-
-  return(ascii_byte);
-}
-
-//////////////////////////////////////////////////////////////
-void write_NVM()
+void read_NVM()
 {
   byte x;
   byte char_address_hi, char_address_lo;
@@ -313,33 +261,49 @@ void write_NVM()
 
   char_address_hi = font_count;
   char_address_lo = 0;
- //Serial.println("write_new_screen");   
+ //Serial.println("read_new_screen");
 
   // disable display
   digitalWrite(MAX7456SELECT,LOW);
-  spi_transfer(VM0_reg); 
+  spi_transfer(VM0_reg);
   spi_transfer(DISABLE_display);
+
+/*
+1) Write VM0[3] = 0 to disable the OSD image.
+2) Write CMAH[7:0] = xxH to select the character
+(0–255) to be read (Figures 10 and 13).
+3) Write CMM[7:0] = 0101xxxx to read the character
+data from the NVM to the shadow RAM (Figure 13).
+
+4) Write CMAL[7:0] = xxH to select the 4-pixel byte
+(0–63) in the character to be read (Figures 10 and 13).
+5) Read CMDO[7:0] = xxH to read the selected 4-pixel
+byte of data (Figures 11 and 13).
+6) Repeat steps 4 and 5 to read other bytes of 4-pixel
+data.
+7) Write VM0[3] = 1 to enable the OSD image display.
+*/
 
   spi_transfer(CMAH_reg); // set start address high
   spi_transfer(char_address_hi);
 
-  for(x = 0; x < NVM_ram_size; x++) // write out 54 (out of 64) bytes of character to shadow ram
+  // transfer 54 bytes from NVM to shadow ram
+  spi_transfer(CMM_reg);
+  spi_transfer(READ_nvr);
+
+  for(x = 0; x < NVM_ram_size; x++) // read 54 (out of 64) bytes of character from shadow ram
   {
-    screen_char = character_bitmap[x];
     spi_transfer(CMAL_reg); // set start address low
     spi_transfer(x);
-    spi_transfer(CMDI_reg);
-    spi_transfer(screen_char);
+
+    character_bitmap[x] = spi_transfer(CMDO_reg);
   }
 
-  // transfer a 54 bytes from shadow ram to NVM
-  spi_transfer(CMM_reg);
-  spi_transfer(WRITE_nvr);
-  
+
   // wait until bit 5 in the status register returns to 0 (12ms)
   while ((spi_transfer(STAT_reg) & STATUS_reg_nvr_busy) != 0x00);
 
   spi_transfer(VM0_reg); // turn on screen next vertical
   spi_transfer(ENABLE_display_vert);
-  digitalWrite(MAX7456SELECT,HIGH);  
+  digitalWrite(MAX7456SELECT,HIGH);
 }
