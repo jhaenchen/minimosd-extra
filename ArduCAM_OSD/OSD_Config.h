@@ -14,6 +14,11 @@
 // int   = 4
 // float = 8
 
+//Jake
+#define TIME_TIMEZONE -5   // Offset from UTC to local time in hours. For eastern North America it should be -4 for summer, -5 for winter
+#define TIME_MAX_SECONDS 86400 // seconds in one day (60*60*24) 
+
+
 // Panel 8bit REGISTER with BIT positions
 // panA_REG Byte has:
 //#define Cen_BIT        0

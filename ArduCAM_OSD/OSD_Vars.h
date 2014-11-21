@@ -14,6 +14,8 @@ static float tdistance = 0;
 static float ddistance = 0;
 static char strclear[]="\x20\x20\x20\x20\x20\x20\x20\x20";
 
+//Jake
+static uint64_t osd_gps_time; // time from GPS AJF
 
 //static float	    nav_roll = 0; // Current desired roll in degrees
 //static float        nav_pitch = 0; // Current desired pitch in degrees

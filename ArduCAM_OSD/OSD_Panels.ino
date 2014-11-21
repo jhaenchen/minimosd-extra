@@ -4,7 +4,6 @@ void startPanels(){
   panLogo(); // Display our logo  
   do_converts(); // load the unit conversion preferences
 }
-
 //------------------ Panel: Startup ArduCam OSD LOGO -------------------------------
 
 void panLogo(){
@@ -748,22 +747,30 @@ void panBatteryPercent(int first_col, int first_line){
     }
     osd.closePanel();
 }
-
 /* **************************************************************** */
-// Panel  : panTime
-// Needs  : X, Y locations
+// Panel : panTime
+// Needs : X, Y locations
 // Output : Time from start with symbols
-// Size   : 1 x 7  (rows x chars)
-// Staus  : done
-
+// Size : 2 x 8 (rows x chars) //AJF
+// Staus : done
 void panTime(int first_col, int first_line){
-    REDRAW_CHECK((int) start_Time);
-
     osd.setPanel(first_col, first_line);
     osd.openPanel();
+    // The data is scaled in usec, and stored as a 64 bit value. We therefore need to divide by 1,000,000 to get to seconds.
+    // Using the standard library 64 bit divide adds about 10kB to the code size and doesn't fit in the 328. Using this routine only 
+    // adds about 1.3kB, and does fit (at least for this version of MinimOSD with a few panels disabled).
+    //uint32_t local_osd_gps_time = Divide_1000000(osd_gps_time);
+    //start_Time = (millis() / 1000) - FTime;
+    //uint32_t local_time = (local_osd_gps_time + TIME_MAX_SECONDS + TIME_TIMEZONE * 3600) % TIME_MAX_SECONDS;
+    //int t_sec = local_time % 60;
+    //local_time /= 60;
+    //int t_min = local_time % 60;
+    //local_time /= 60;
+    //int t_hr = local_time % 24;
+    //osd.printf(" %c%2i%c%02i|", 0x08, ((int)start_Time / 60) % 60, 0x3A, (int)start_Time % 60);
     
-    //start_Time = (millis()/1000) - FTime;
-    osd.printf("%c%2i%c%02i", 0x08,((int)start_Time/60)%60,0x3A,(int)start_Time%60);
+    osd.printf("%llu", osd_gps_time);
+    //if(local_osd_gps_time != 0) osd.printf("%02i%c%02i%c%02i", t_hr, 0x3A, t_min, 0x3A, t_sec);
     osd.closePanel();
 }
 

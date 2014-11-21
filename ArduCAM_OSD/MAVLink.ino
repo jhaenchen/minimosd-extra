@@ -160,6 +160,11 @@ int read_mavlink(){
                     temperature = mavlink_msg_scaled_pressure_get_temperature(&msg);
                 }
                 break;
+            case MAVLINK_MSG_ID_SYSTEM_TIME:
+                {
+                osd_gps_time = mavlink_msg_system_time_get_time_unix_usec(&msg);
+                }
+                break;
             default:
                 //Do nothing
                 ret = 0;
